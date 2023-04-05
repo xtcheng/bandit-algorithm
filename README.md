@@ -1,5 +1,5 @@
-```
-# Code Flow - UCB1 Algorithm for Multi-Armed Bandit
+
+#  UCB1 Algorithm for Multi-Armed Bandit
 
 ## Overview
 
