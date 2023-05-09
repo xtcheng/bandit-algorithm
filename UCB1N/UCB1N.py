@@ -1,48 +1,59 @@
 import numpy as np
 
 class UCB1N:
-    def __init__(self, T, num_arm, c):
+    def __init__(self,T,num_arm):
         self.T = T
         self.num_arm = num_arm
         self.num_play = np.zeros(self.num_arm)
-        self.sum_reward = np.zeros(self.num_arm)
-        self.avg_reward = np.zeros(self.num_arm)
+        self.sum_mu = np.zeros(self.num_arm)
+        self.sum_rwd_sqr = np.zeros(self.num_arm)
+        self.mu = np.zeros(self.num_arm)
         self.ucb = np.zeros(self.num_arm)
-        self.sum_regret = 0
-        self.avg_regret = np.zeros(self.T)
-        self.cum_regret = np.zeros(self.T)
-        self.c = c
+        self.sum_rgt = 0
+        self.avg_rgt = np.zeros(self.T)
+        self.cum_rgt = np.zeros(self.T)
     
-    def run(self, env):
-        for i in range(self.T):
-            if i < self.num_arm:
-                arm = i
+    def run(self,env):
+        for n in range(1, self.T+1):
+            if n <= self.num_arm:
+                arm = n-1
             else:
-                ucb_values = self.avg_reward + self.c * np.sqrt(np.log(i) / self.num_play)
-                upper_bound = np.inf if self.num_play[ucb_values == 0].sum() > 0 else self.c * np.sqrt(np.log(i))
-                ucb_values += upper_bound * np.sqrt(np.log(i) / (self.num_play + 1))
-                arm = np.argmax(ucb_values)
-            
-            reward, br = env.feedback(arm)
-            self.sum_reward[arm] += reward
+                max_ucb = float('-inf')
+                for j in range(self.num_arm):
+                    if self.num_play[j] < 8*np.log(n):
+                        arm = j
+                        break
+                    else:
+                        ucb = self.mu[j] + np.sqrt((16*(self.sum_rwd_sqr[j] - self.num_play[j]*(self.mu[j]**2))/(self.num_play[j]-1))*(np.log(n-1)/self.num_play[j]))
+                        if ucb > max_ucb:
+                            max_ucb = ucb
+                            arm = j
+                        
+            rwd, br = env.feedback(arm)
+            self.sum_mu[arm] += rwd
+            self.sum_rwd_sqr[arm] += rwd**2
             self.num_play[arm] += 1
-            self.avg_reward[arm] = self.sum_reward[arm] / self.num_play[arm]
-            self.ucb[arm] = self.avg_reward[arm] + np.sqrt((self.c * np.log(i)) / (self.num_play[arm] + 1))
-            self.sum_regret += (br - reward)
-            self.avg_regret[i] = self.sum_regret / (i+1)
-            self.cum_regret[i] = self.sum_regret
+            self.mu[arm] = self.sum_mu[arm]/self.num_play[arm]
+            self.ucb[arm] = self.mu[arm] + np.sqrt((16*(self.sum_rwd_sqr[arm] - self.num_play[arm]*(self.mu[arm]**2))/(self.num_play[arm]-1))*(np.log(n-1)/self.num_play[arm]))
+            self.sum_rgt += (br - rwd)
+            self.avg_rgt[n-1] = self.sum_rgt/n
+            self.cum_rgt[n-1] = self.sum_rgt
+            
 
+    
     def get_avg_rgt(self):
-        return self.avg_regret
+        return self.avg_rgt
     
     def get_cum_rgt(self):
-        return self.cum_regret
+        return self.cum_rgt
     
     def clear(self):
         self.num_play = np.zeros(self.num_arm)
-        self.sum_reward = np.zeros(self.num_arm)
-        self.avg_reward = np.zeros(self.num_arm)
+        self.sum_mu = np.zeros(self.num_arm)
+        self.sum_rwd_sqr = np.zeros(self.num_arm)
+        self.mu = np.zeros(self.num_arm)
         self.ucb = np.zeros(self.num_arm)
-        self.sum_regret = 0
-        self.avg_regret = np.zeros(self.T)
-        self.cum_regret = np.zeros(self.T)
+        self.sum_rgt = 0
+        self.avg_rgt = np.zeros(self.T)
+        self.cum_rgt = np.zeros(self.T)
+
