@@ -1,7 +1,7 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 13 13:30:21 2023
-
 @author: Xiaotong
 """
 
@@ -17,4 +17,3 @@ class environment:
         rwd = self.mu[arm] + noise.sample_trunc()
         br  =  max(self.mu)
         return rwd, br
-        

@@ -10,8 +10,9 @@ from UCB1 import UCB1
 import numpy as np
 import matplotlib.pyplot as plt
 
-num_arm = 2
-T = 1000
+
+num_arm =2
+T = 10000
 mu = np.array([0.1,0.9])
 
 env = environment(num_arm,mu)
@@ -25,9 +26,11 @@ plt.plot(cum_rgt,ls='-',color = 'b',label = 'UCB1')
 plt.xlabel('t (Trials)',fontsize=15) 
 plt.title('Cumulative Regret') 
 plt.legend(loc='upper right')   
+plt.show()
 
 plt.figure(figsize=(6,5))
 plt.plot(avg_rgt,ls='-',color = 'b',label = 'UCB1')
 plt.xlabel('t (Trials)',fontsize=15) 
 plt.title('Average Regret') 
 plt.legend(loc='upper right')  
+plt.show()

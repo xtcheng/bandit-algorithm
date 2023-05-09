@@ -33,6 +33,11 @@ class UCB1:
             self.sum_rgt += (br - rwd)
             self.avg_rgt[i] += self.sum_rgt/(i+1)
             self.cum_rgt[i] += self.sum_rgt
+            """print("arm chosen: ", arm)
+            print("reward: ", rwd)
+            print("best reward: ", br)
+            print("average regret at ", i, ": ", self.avg_rgt[i])
+            print("cumulative regret at ", i, ": ", self.cum_rgt[i])"""
     
     def get_avg_rgt(self):
         return self.avg_rgt
