@@ -1,19 +1,22 @@
 import numpy as np
 
 class EpsilonGreedy:
-    def __init__(self, T, num_arm, epsilon):
+    def __init__(self, T, num_arm,c,d):
         self.T = T
         self.num_arm = num_arm
-        self.epsilon = epsilon
+        self.c = c
+        self.d = d
         self.num_play = np.zeros(num_arm)
         self.sum_mu = np.zeros(num_arm)
         self.mu = np.zeros(num_arm)
         self.cum_rgt = np.zeros(T)
         self.avg_rgt = np.zeros(T)
     
-    def run(self, env):
+    def run(self, env):      
         for i in range(self.T):
-            if np.random.random() < self.epsilon:
+            n = sum(self.num_play)
+            e = min(1,self.c/(self.d**2*n))
+            if np.random.random() < e:
                 arm = np.random.choice(self.num_arm)
             else:
                 arm = np.argmax(self.mu)
