@@ -30,7 +30,7 @@ class UCB2:
             plays = np.round(tau * (self.r[arm] + 1 - self.epochs_played[arm]) - tau * (self.r[arm] - self.epochs_played[arm]))
             self.epochs_played[arm] += plays
 
-            for _ in range(int(plays)):
+            for k in range(int(plays)):
                 rwd, br = env.feedback(arm)
                 self.sum_mu[arm] += rwd
                 self.num_play[arm] += 1
