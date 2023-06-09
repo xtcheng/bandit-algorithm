@@ -1,46 +1,52 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed May 10 10:54:12 2023
-
 @author: Xiaotong
 """
 
 from env import environment
 from UCB2 import UCB2
-from epsilon import EpsilonGreedy
+from epsilion import EpsilonGreedy
 from UCB1 import UCB1
 from UCB1N import UCB1N 
 import numpy as np
 import matplotlib.pyplot as plt
 
 num_arm = 5
-T = 5000
-mu = np.array([0.1,0.9,0.4,0.3,0.6])
+T = 100
 
-env = environment(num_arm,mu)
-
-######TO DO
-''' Compare all the algorithms' performance
-    run each algorithm 10 times and obtain the average regret'''
-    
+mu = np.array([0.1, 0.9, 0.4, 0.3, 0.6])
 Trial = 10
-for i in range (0,Trial):
-    
-
-    
+env = environment(num_arm, mu)
 
 
-####Plot all the regret in one figure 
-plt.figure(figsize=(6,5))
-#TODO
-plt.xlabel('t (Trials)',fontsize=15) 
-plt.title('Cumulative Regret') 
-plt.legend(loc='upper right')   
-plt.show()
+algorithms = [UCB2(T, num_arm, alpha=0.1), EpsilonGreedy(T, num_arm, c=0.01, d=0.05), UCB1(T, num_arm), UCB1N(T, num_arm)]
+algorithm_names = ['UCB2', 'Epsilon-Greedy', 'UCB1', 'UCB1N']
+avg_regret = []
 
-plt.figure(figsize=(6,5))
-#TODO
-plt.xlabel('t (Trials)',fontsize=15) 
-plt.title('Average Regret') 
-plt.legend(loc='upper right')  
+for i, algorithm in enumerate(algorithms):
+    regret_sum = 0
+    for trial in range(Trial):
+        algorithm.clear()
+        algorithm.run(env)
+        regret_sum += algorithm.get_cum_rgt()[-1]
+    avg_regret.append(regret_sum / Trial)
+
+plt.figure(figsize=(6, 5))
+for i, algorithm in enumerate(algorithms):
+    plt.plot(range(T), algorithm.get_cum_rgt(), label=algorithm_names[i])
+plt.xlabel('t (Trials)', fontsize=15)
+plt.ylabel('Cumulative Regret', fontsize=15)
+plt.legend(loc='upper right')
+plt.title('Cumulative Regret')
+#plt.show()
+
+
+plt.figure(figsize=(6, 5))
+for i, algorithm in enumerate(algorithms):
+    plt.plot(range(T), algorithm.get_avg_rgt(), label=algorithm_names[i])
+plt.xlabel('t (Trials)', fontsize=15)
+plt.ylabel('Average Regret', fontsize=15)
+plt.legend(loc='upper right')
+plt.title('Average Regret')
 plt.show()
