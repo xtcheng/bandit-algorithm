@@ -22,7 +22,7 @@ for _ in range(num_simulations):
     avg_cumulative_regret += ucb1.get_cum_rgt()
     avg_average_regret += ucb1.get_avg_rgt()
     ucb1.clear()
-    print(_+1)
+
 
 avg_cumulative_regret /= num_simulations
 avg_average_regret /= num_simulations
