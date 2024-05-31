@@ -38,7 +38,7 @@ class UCB2:
                 self.sum_rgt += (br - rwd)
                 self.avg_rgt[i] += self.sum_rgt / (i + 1)
                 self.cum_rgt[i] += self.sum_rgt
-
+            i += int(plays)
             # set r_j <-- r_j + 1
             self.r[arm] += 1
 

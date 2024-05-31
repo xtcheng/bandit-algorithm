@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 10 10:54:12 2023
+Created on Fri May 31 11:17:30 2024
+
 @author: Xiaotong
+
+test the algorithms in paper "Finite-time Analysis of the Multiarmed Bandit Problem"
 """
 
-from env import environment
-from UCB2 import UCB2
-from epsilion import EpsilonGreedy
-from UCB1 import UCB1
-from UCB1N import UCB1N 
+import sys
+sys.path.append('../')
+
+from environment.Gaussian_noise import Gaussian_noise as gn
+from environment.env import env_stochastic
+from algorithms.UCB2 import UCB2
+from algorithms.epsilion import EpsilonGreedy
+from algorithms.UCB1 import UCB1
+from algorithms.UCB1N import UCB1N 
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,7 +25,8 @@ T = 100
 
 mu = np.array([0.1, 0.9, 0.4, 0.3, 0.6])
 Trial = 10
-env = environment(num_arm, mu)
+noise = gn(1,0,0.01,[-0.1,0.1])
+env = env_stochastic(num_arm, mu, noise)
 
 
 algorithms = [UCB2(T, num_arm, alpha=0.1), EpsilonGreedy(T, num_arm, c=0.01, d=0.05), UCB1(T, num_arm), UCB1N(T, num_arm)]
