@@ -16,7 +16,7 @@ class exp3:
 			# Step 1: Re-calculate the propabilities to pick an arm.
 			for j in range(self.K):
 				self.propabilities[j] = (1-self.gamma) * self.omegas[j] / self.total_omega + self.gamma/self.K
-			print(self.propabilities)
+			#print(self.propabilities)
 			
 			# Step 2: Select random arm according to the distribution.
 			arm_position = self.rng.random()
@@ -27,7 +27,7 @@ class exp3:
 				if current_position > arm_position:
 					arm = j
 					break
-			print("Random number", arm_position, ", pick arm", arm)
+			#print("Random number", arm_position, ", pick arm", arm)
 			
 			# Step 3: Pull arm and receive result
 			reward, best = env.feedback(arm)
