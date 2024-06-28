@@ -31,8 +31,6 @@ class EnvParabola:
 			self.boundaries = boundaries
 		
 		self.refresh()
-		print(self.function)
-		print()
 	
 	
 	def getVariables(self):
@@ -94,6 +92,7 @@ class EnvParabola:
 	def getBest(self):
 		# Returns the best possible output of the current cost function.
 		# Usually 0, unless the minimum has been shifted outside the feasible space.
+		# Ask this BEFORE the cost function / costs!
 		
 		inputs = list()
 		for i in range(len(self.shifts)):
@@ -106,9 +105,10 @@ class EnvParabola:
 		return self.feedback(inputs, False)
 
 
-
+"""
 # Tests:
 f = EnvParabola(3, stability=0.5)
 print(f.getBest())
 for i in range(8):
 	print("Best:", f.getBest(), "\t\tchosen:", f.feedback([0,0,0]))
+"""
