@@ -71,6 +71,17 @@ class EnvParabola:
 		
 		return self.boundaries
 	
+	def getMinMax(self):
+		# Return the smallest and the greatest possible return of any cost function.
+		# The smallest is 0 and the greatest is at the edge of a function that has its minimum on the other edge.
+		# TODO: Consider the case where the minimum is not inside the feasible set.
+		
+		slope = self.slope_mean + 2*self.slope_scale # TODO: guarantee that the slope will never be greater.
+		maximum = 0
+		for bound in self.boundaries:
+			maximum += (bound[1]-bound[0])**2 * slope
+		return 0, maximum
+	
 	
 	def refresh(self):
 		# Internally used to get a new cost function.
