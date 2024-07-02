@@ -57,7 +57,7 @@ class BGD:
 			best = env.getBest()
 			
 			# random unit vector
-			u = self.unit(self.rng.random(size=d))
+			u = self.unit(self.rng.uniform(-1, 1, size=d))
 			
 			# Calculate the next input.
 			x = y + delta*u
