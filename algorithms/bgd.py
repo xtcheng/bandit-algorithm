@@ -33,7 +33,6 @@ class BGD:
 		# then we would interpret  0 as -5,  1 as -4 ... 10 as 5.
 		minimum, maximum = env.getMinMax()
 		C = maximum - minimum
-		output_offset = minimum - C/2
 		
 		# TODO: Calculate an input offset in case the cube is not centered at 0.
 		input_offsets = np.zeros(d)
@@ -51,7 +50,7 @@ class BGD:
 		
 		# Calculate the parameters for the general case.
 		ny = R / (C*np.sqrt(self.n))
-		delta = np.power((r * (R**2) * (d**2)) / 12*self.n, 1/3)
+		delta = np.power((r * (R**2) * (d**2)) / (12*self.n), 1/3)
 		alpha = np.power((3*R*d) / (2*r*np.sqrt(self.n)), 1/3)
 		
 		for timestep in range(1, self.n+1):
@@ -66,10 +65,9 @@ class BGD:
 			
 			# Get the costs of the current position.
 			costs = env.feedback(x + input_offsets)
-			shifted_costs = costs + output_offset
 			
 			# Calculate the next y.
-			y_raw = y - ny*shifted_costs*u
+			y_raw = y - ny*costs*u
 			
 			# And project it into the sphere
 			if self.vectorLen(y_raw) > (1-alpha) * R:
