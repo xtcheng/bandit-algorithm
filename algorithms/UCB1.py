@@ -29,7 +29,13 @@ class UCB1:
             self.sum_mu[arm] += rwd
             self.num_play[arm] += 1
             self.mu[arm] = self.sum_mu[arm]/self.num_play[arm]
-            self.ucb[arm] = self.mu[arm] + np.sqrt(2*np.log(i)/self.num_play[arm])
+            
+            # i, which goes into the formula, changes in every turn. This means recalculations
+            # must be performed for every arm, not just for the current one.
+            for j in range(self.num_arm):
+                if self.num_play[j] > 0:
+                    self.ucb[j] = self.mu[j] + np.sqrt(2*np.log(i+1)/self.num_play[j])
+            
             self.sum_rgt += (br - rwd)
             self.avg_rgt[i] += self.sum_rgt/(i+1)
             self.cum_rgt[i] += self.sum_rgt
