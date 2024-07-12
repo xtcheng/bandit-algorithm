@@ -8,13 +8,14 @@ Created on Mon Mar 13 13:31:09 2023
 import numpy as np
 
 class UCB1:
-    def __init__(self,T,num_arm):
+    def __init__(self,T,num_arm, xi=2):
         self.T = T
         self.num_arm = num_arm
         self.num_play = np.zeros(self.num_arm)
         self.sum_mu = np.zeros(self.num_arm)
         self.mu = np.zeros(self.num_arm)
         self.ucb = np.zeros(self.num_arm)
+        self.xi = xi
         self.sum_rgt = 0
         self.avg_rgt = np.zeros(self.T)
         self.cum_rgt = np.zeros(self.T)
@@ -34,7 +35,7 @@ class UCB1:
             # must be performed for every arm, not just for the current one.
             for j in range(self.num_arm):
                 if self.num_play[j] > 0:
-                    self.ucb[j] = self.mu[j] + np.sqrt(2*np.log(i+1)/self.num_play[j])
+                    self.ucb[j] = self.mu[j] + np.sqrt(self.xi*np.log(i+1)/self.num_play[j])
             
             self.sum_rgt += (br - rwd)
             self.avg_rgt[i] += self.sum_rgt/(i+1)

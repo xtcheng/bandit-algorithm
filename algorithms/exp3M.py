@@ -55,6 +55,8 @@ class exp3M:
 				undecided.remove(i)
 			if values[j] == 1 or values[j] == 0:
 				undecided.remove(j)
+			if values[i] > 1 or values[i] < 0 or values[j] > 1 or values[j] < 0:
+				print("Over-/Underflow detected!", str(i), str(j), "\n")
 			
 			#print(values)
 			#print(undecided)

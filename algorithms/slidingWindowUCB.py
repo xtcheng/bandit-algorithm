@@ -5,8 +5,8 @@ if not "../" in sys.path:
 from algorithms.UCB1 import UCB1
 
 class SlidingWindowUCB(UCB1):
-	def __init__(self,T,num_arm, gamma):
-		super().__init__(T, num_arm)
+	def __init__(self,T,num_arm, gamma, xi=2):
+		super().__init__(T, num_arm, xi)
 		# This time, gamma is how far the memory goes back into the past.
 		self.gamma = gamma
 		
@@ -55,7 +55,7 @@ class SlidingWindowUCB(UCB1):
 			# As before.
 			for j in range(self.num_arm):
 				if(self.num_play[j]>0):
-					self.ucb[j] = self.mu[j] + np.sqrt(2*np.log(min(i+1, self.gamma+1))/self.num_play[j])
+					self.ucb[j] = self.mu[j] + np.sqrt(self.xi*np.log(min(i+1, self.gamma+1))/self.num_play[j])
 				else:
 					self.ucb[j] = np.inf
 			

@@ -5,8 +5,8 @@ if not "../" in sys.path:
 from algorithms.UCB1 import UCB1
 
 class DiscountedUCB(UCB1):
-	def __init__(self,T,num_arm, gamma):
-		super().__init__(T, num_arm)
+	def __init__(self,T,num_arm, gamma, xi=2):
+		super().__init__(T, num_arm, xi)
 		self.gamma = gamma
 	
 	def run(self,env):
@@ -43,7 +43,7 @@ class DiscountedUCB(UCB1):
 			# Same as before.
 			for j in range(self.num_arm):
 				if(self.num_play[j]>0):
-					self.ucb[j] = self.mu[j] + np.sqrt(2*np.log(total_plays)/self.num_play[j])
+					self.ucb[j] = self.mu[j] + np.sqrt(self.xi*np.log(total_plays)/self.num_play[j])
 				else:
 					self.ucb[j] = np.inf
 			

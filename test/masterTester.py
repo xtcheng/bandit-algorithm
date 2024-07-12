@@ -12,6 +12,8 @@ def test(T, repeats, envs, algorithms, algorithm_names, env_names):
 			for trial in range(repeats):
 				algorithm.clear()
 				algorithm.run(env)
+				if hasattr(env, "clear"):
+					env.clear()
 				for y in range(T):
 					cum_regret[-1][y] += algorithm.get_cum_rgt()[y] / repeats
 					avg_regret[-1][y] += algorithm.get_avg_rgt()[y] / repeats
