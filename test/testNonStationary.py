@@ -18,11 +18,11 @@ T = 10000
 mu1 = np.array([0.5, 0.3, 0.4])
 mu2 = np.array([0.5, 0.3, 0.9])
 mu3 = np.array([0.5, 0.3, 0.4])
-Trial = 1
+Trial = 8
 noise = gn(1,0,0.01,[-0.2,0.2])
 envs = list()
 envs.append(env_stochastic(num_arm, mu1, noise))
-envs.append(env_non_stationary(num_arm, [mu1, mu2, mu3], noise, [3000, 5000]))# About 1 change in 50 turns.
+envs.append(env_non_stationary(num_arm, [mu1, mu2, mu3], noise, [3000, 5000]))
 
 
 algorithms = [UCB1(T, num_arm, xi=0.5), DiscountedUCB(T, num_arm, 0.9975, xi=0.5), SlidingWindowUCB(T, num_arm, 800, xi=0.5)]

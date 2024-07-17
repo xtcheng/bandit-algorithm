@@ -16,7 +16,7 @@ class SlidingWindowUCB(UCB1):
 		# And this describes what the reward of that chosen arm was.
 		self.past_rewards = [0]*gamma
 		
-		# Use a C-style circular array. Actually, whith python's list having properties of linked lists, it should also be possible to simply use them as a FIFO without loosing much efficiency.
+		# Use a C-style circular array. Actually, with python's list having properties of linked lists, it should also be possible to simply use them as a FIFO without loosing much efficiency.
 		self.pos = gamma-1
 	
 	def run(self,env):
@@ -31,9 +31,9 @@ class SlidingWindowUCB(UCB1):
 			# New: Remove the impact of the oldest play-reward pair if memory is full. Attention: For the rewards, this may show a tiny deviation from summing up the whole array in every step because of floating point imprecision. The impact should be neglicible.
 			if i >= self.gamma:
 				out = self.past_actions[self.pos]
-				self.sum_mu[out] -= self.past_rewards[out]
+				self.sum_mu[out] -= self.past_rewards[self.pos]
 				self.num_play[out] -= 1
-				# The number of plays is reduced by 1 instead of being multiplied with gamma for every arm in every step. The latter is how it is described in the paper, but that does not make any sene?
+				# The number of plays is reduced by 1 instead of being multiplied with gamma for every arm in every step. The latter is how it is described in the paper, but that does not make any sense?
 				
 				# Now the mu of that arm has changed, so recalculate it if it is not the current arm, which will be refreshed anyway.
 				if self.num_play[out] > 0:
