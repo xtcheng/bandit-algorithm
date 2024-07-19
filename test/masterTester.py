@@ -1,14 +1,17 @@
 import matplotlib.pyplot as plt
+import time
 
 def test(T, repeats, envs, algorithms, algorithm_names, env_names):
 
 	avg_regret = []
 	cum_regret = []
+	sum_times = [0]*len(algorithms)
 
 	for env in envs:
 		for i, algorithm in enumerate(algorithms):
 			cum_regret.append([0]*T)
 			avg_regret.append([0]*T)
+			start_time = time.perf_counter()
 			for trial in range(repeats):
 				algorithm.clear()
 				algorithm.run(env)
@@ -17,7 +20,12 @@ def test(T, repeats, envs, algorithms, algorithm_names, env_names):
 				for y in range(T):
 					cum_regret[-1][y] += algorithm.get_cum_rgt()[y] / repeats
 					avg_regret[-1][y] += algorithm.get_avg_rgt()[y] / repeats
-
+			end_time = time.perf_counter()
+			sum_times[i] += end_time - start_time
+	
+	for i in range(len(algorithms)):
+		print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (repeats*len(envs)))+" seconds.")
+	
 	plt.figure(figsize=(6, 5))
 	for j, env in enumerate(envs):
 		for i, algorithm in enumerate(algorithms):
