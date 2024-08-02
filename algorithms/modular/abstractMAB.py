@@ -1,7 +1,6 @@
 class AbstractMAB:
-	def __init__(self,T,num_arm):
+	def __init__(self,T):
 		self.T = T
-		self.num_arm = num_arm
 		self.clear()
 	
 	def run(self,env):

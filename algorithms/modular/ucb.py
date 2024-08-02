@@ -7,7 +7,6 @@ from algorithms.modular.nullAdaptionModule import NullAdaptionModule
 
 class ModularUCB(AbstractMAB):
 	def __init__(self,T,num_arm, xi):
-		self.xi = xi
 		self.selection_module = UCBModule(T,num_arm,xi)
 		self.adaption_module = NullAdaptionModule(self.selection_module)
-		super().__init__(T,num_arm)
+		super().__init__(T)
