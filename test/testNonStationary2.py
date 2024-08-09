@@ -38,8 +38,8 @@ algorithms = list()
 algorithms.append(UCB1(T, num_arm, xi=0.5))
 algorithms.append(SlidingWindowUCB(T, num_arm, 800, xi=0.5))
 algorithms.append(MonitoredUCB(T, num_arm, w=50, b=3, gamma=0.1))
-algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=True))
-algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=False))
+algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=True, lazyness=10))
+algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=False, lazyness=10))
 
 algorithm_names = ["UCB1", "SlidingWindowUCB", "MonitoredUCB", "GLR-klUCB glob", "GLR-klUCB loc"]
 env_names = ["non stationary"]

@@ -2,11 +2,12 @@ import numpy as np
 from scipy.special import zeta, lambertw
 
 class GLRModule:
-	def __init__(self, selection_module, num_arm, delta, globalRestart):
+	def __init__(self, selection_module, num_arm, delta, globalRestart, lazyness):
 		self.selection_module = selection_module
 		self.num_arm = num_arm
 		self.delta = delta
 		self.globalRestart = globalRestart
+		self.lazyness = lazyness
 		self.fullReset()
 	
 	
@@ -41,7 +42,7 @@ class GLRModule:
 		self.past_rewards_sums[arm] += reward
 		
 		n=len(self.past_rewards[arm])
-		if n > 2:
+		if n > 2 and n%self.lazyness == 0:
 			# Perform the GLR-check. If any s is found that satisfies the formula, a restart has to be performed.
 			mean = self.past_rewards_sums[arm] / len(self.past_rewards[arm])
 			left_mean = 0
