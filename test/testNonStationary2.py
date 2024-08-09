@@ -9,6 +9,7 @@ from algorithms.UCB1 import UCB1
 from algorithms.slidingWindowUCB import SlidingWindowUCB
 from algorithms.monitoredUCB import MonitoredUCB
 from algorithms.modular.glr_klUCB import GLR_klUCB
+from algorithms.modular.bocd import BOCD
 
 import numpy as np
 
@@ -35,13 +36,13 @@ envs.append(env_non_stationary(num_arm, [mu1, mu2, mu3], noise, [3000, 5000]))
 #406,0.65
 
 algorithms = list()
-algorithms.append(UCB1(T, num_arm, xi=0.5))
 algorithms.append(SlidingWindowUCB(T, num_arm, 800, xi=0.5))
 algorithms.append(MonitoredUCB(T, num_arm, w=50, b=3, gamma=0.1))
 algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=True, lazyness=10))
 algorithms.append(GLR_klUCB(T, num_arm, alpha=0.03, delta=0.01, global_restart=False, lazyness=10))
+algorithms.append(BOCD(T, num_arm, alpha=0.03))
 
-algorithm_names = ["UCB1", "SlidingWindowUCB", "MonitoredUCB", "GLR-klUCB glob", "GLR-klUCB loc"]
+algorithm_names = ["SlidingWindowUCB", "MonitoredUCB", "GLR-klUCB glob", "GLR-klUCB loc", "BOCD"]
 env_names = ["non stationary"]
 
 test(T, Trial, envs, algorithms, algorithm_names, env_names)
