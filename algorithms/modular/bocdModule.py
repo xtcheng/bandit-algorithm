@@ -13,9 +13,6 @@ class ArmContainer:
 		self.forecaster_distribution = np.array([1])
 		self.pseudo_dist = np.array([1])
 		self.like1 = 1
-		
-		# New: The loop is not here, so keep track of the current time.
-		self.now = 0
 
 
 
@@ -57,12 +54,3 @@ class BOCDModule:
 	def fullReset(self):
 		for i in range(self.num_arm):
 			self.containers[i] = ArmContainer()
-	
-	"""def restart(self, arm):
-		if self.globalRestart:
-			self.selection_module.fullReset()
-			self.fullReset()
-		else:
-			self.selection_module.resetArm(arm)
-			self.past_rewards[arm] = list()
-			self.past_rewards_sums[arm] = 0"""
