@@ -2,12 +2,12 @@ import sympy
 import numpy as np
 
 class EnvParabola:
-	def __init__(self, dimensions, pos_mean=0, pos_scale=5, slope_mean=1, slope_scale=0.5, boundaries=10, stability=1):
+	def __init__(self, dimensions, pos_mean=0, pos_scale=5, slope_mean=1, slope_scale=0.5, boundaries=10, stability=1, fixed_breakpoints=False):
 		# dimensions: How many dimensions the input has.
 		# pos_mean and pos_scale: draw the position of the local minimum from a gaussian distribution.
 		# note that for a standard-parabola in one dimension, pos would be 0 and slope 1.
 		# boundaries: either a list of 2-tuples or a positive number
-		# stability: the propability that the cost function is not replaced by a new one in the next timestep.
+		# stability: the propability that the cost function is NOT replaced by a new one in the next timestep.
 		
 		variable_string = "x0"
 		for i in range(1, dimensions):
@@ -21,6 +21,12 @@ class EnvParabola:
 		self.slope_mean = slope_mean
 		self.slope_scale = slope_scale
 		self.stability = stability
+		self.fixed_breakpoints = fixed_breakpoints
+		# Position of the breakpoints may be fixed instead of random to better compare things.
+		
+		if stability < 1 and fixed_breakpoints:
+			self.breakpoint_target = 1 / (1-stability)
+			self.breakpoint_status = 0
 		
 		if isinstance(boundaries, int) or isinstance(boundaries, float):
 			# if just a number is given, let all boundaries be minus that until that number.
@@ -51,7 +57,7 @@ class EnvParabola:
 		
 		if switch and np.random.rand() > self.stability:
 			self.refresh()
-		return current
+		return float(current)
 	
 	
 	def getFunction(self):
@@ -60,8 +66,14 @@ class EnvParabola:
 		# Internally switches to the next cost function then (which may be the same as before).
 		
 		ret = self.function
-		if np.random.rand() > self.stability:
-			self.refresh()
+		if not fixed_breakpoints:
+			if np.random.rand() > self.stability:
+				self.refresh()
+		else:
+			self.breakpoint_status += 1-self.stability
+			if self.breakpoint_status >= self.breakpoint_target:
+				self.breakpoint_status = 0
+				self.refresh()
 		return ret
 	
 	
@@ -82,6 +94,25 @@ class EnvParabola:
 			maximum += (bound[1]-bound[0])**2 * slope
 		return 0, maximum
 	
+	def getLipschitz(self):
+		# Return the L that satisfies the Lipschitz criteria.
+		
+		# We deal with parabolas, which have simpler shape than a general L-Lipschitz-function. In fact, it should be sufficient to set L to the maximum possible gradient, because the area of this is where the difference between two outputs would show the greatest deviation from the according inputs.
+		
+		a = self.slope_mean + 2*self.slope_scale
+		
+		# Use the dimensions with the largest intervall
+		selected_dimension = (0,0)
+		for dimension in self.boundaries:
+			if dimension[1]-dimension[0] > selected_dimension[1]-selected_dimension[0]:
+				selected_dimension = dimension
+		b = -selected_dimension[0]
+		
+		var = sympy.symbols("test_x")
+		test_fun = a * a*((var+b)**2)
+		diff = sympy.diff(test_fun, var)
+		return float(diff.subs(var, selected_dimension[1]))
+		
 	
 	def refresh(self):
 		# Internally used to get a new cost function.
