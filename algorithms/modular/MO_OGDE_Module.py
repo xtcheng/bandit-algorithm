@@ -42,11 +42,13 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		for i in range(self.num_arm):
 			for j in range(self.num_objectives):
 				gradient[i] += self.sorted_mu[i][j] * self.gini_weights[j]
+			# Weight by the probability of that arm being picked because we want to evaluate the gradient at the current position.
+			gradient[i] *= self.current_mix[i]
 		#print(gradient)
 		
 		# Perform gradient decent.
 		learning_rate = (np.sqrt(2) / (1 - (1/np.sqrt(self.num_arm))) ) * np.sqrt(np.log(2/self.delta) / self.current_turn)
-		for i in range(self.num_objectives):
+		for i in range(self.num_arm):
 			self.current_mix[i] -= learning_rate * gradient[i]
 		
 		# Project back into the feasible set.
