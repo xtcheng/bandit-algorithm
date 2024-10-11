@@ -9,21 +9,22 @@ from algorithms.modular.basicMultiObjective import BasicMultiObjective
 import numpy as np
 
 num_arm = 3
-T = 100
+T = 200
 
+weights = [1, 1/2]
 
 mu = []
 mu.append(np.array([0.1, 0.3]))
 mu.append(np.array([0.2, 0.1]))
 mu.append(np.array([0.1, 0.4]))
 
-trial = 1
+trial = 10
 noise = gn(1,0,0.01,[-0.2,0.2])
 envs = list()
-envs.append(EnvMultiOutput(num_arm, mu, noise))
+envs.append(EnvMultiOutput(num_arm, mu, noise, weights))
 
 algorithms = list()
-algorithms.append(BasicMultiObjective(T, num_arm, num_objectives=2, delta=0.95, gini_weights=[1, 1/2]))
+algorithms.append(BasicMultiObjective(T, num_arm, num_objectives=2, delta=0.95, gini_weights=weights))
 
 algorithm_names = ["MO_OGDE"]
 env_names = ["Simple"]
