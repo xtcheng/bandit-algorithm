@@ -67,7 +67,6 @@ class MO_OGDE_Module(AbstractSelectionModule):
 	def change_A(self,a,K,t):
 		# Taken almost directly from https://github.com/zhacheny/Optimization-based-on-GNI-Index-For-multi-objective-bandits/blob/master/Codes/LearningML.py
 		# TODO: Can the projection be performed in a simpler way?
-		# TODO: Does not seem to work as intended, but throws no errors.
 		
 		# Send the output into space
 		stdout = sys.stdout
