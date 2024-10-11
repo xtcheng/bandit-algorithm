@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 from cvxopt import *
 import math
 if not "../" in sys.path:
@@ -65,8 +66,12 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		
 	def change_A(self,a,K,t):
 		# Taken almost directly from https://github.com/zhacheny/Optimization-based-on-GNI-Index-For-multi-objective-bandits/blob/master/Codes/LearningML.py
-		# TODO: Can the projection be performed in a simpler way? If not, at least mute the output or prevent it from going to stdout.
+		# TODO: Can the projection be performed in a simpler way?
 		# TODO: Does not seem to work as intended, but throws no errors.
+		
+		# Send the output into space
+		stdout = sys.stdout
+		sys.stdout = open(os.devnull, 'w')
 		
 		beta = (math.sqrt(2.0)*math.sqrt(math.log(2/self.delta)/(t+K)))/(1-1/math.sqrt(K))
 		beta /= K
@@ -90,5 +95,9 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		A =  matrix([p[i] for i in range(0,K)],(1,K))
 		b = matrix(1.0)
 		sol = solvers.qp(P, q, G, h, A, b)
+		
+		# Restore stdout
+		sys.stdout = stdout
+		
 		return np.array(sol['x']).flatten()
 	

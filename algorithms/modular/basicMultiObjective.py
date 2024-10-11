@@ -44,7 +44,6 @@ class BasicMultiObjective(AbstractMAB):
 			total_mix += self.selection_module.current_mix
 			
 			pseudo = gini(total_mix / (t+1), ar)
-			print(pseudo)
 			
 			
 			self.sum_rgt += gini_avg - optimal_costs
