@@ -19,8 +19,9 @@ class MO_OGDE_Module(AbstractSelectionModule):
 	
 	def suggestArm(self):
 		# Select each arm once before performing the meaningful operations.
-		if self.current_turn <= self.num_arm:
-			return self.num_arm-1
+		if 0 in self.num_play:
+			print("Index", self.num_play.index(0), "is 0!")
+			return self.num_play.index(0)
 		else:
 			sum_mix = 0
 			for m in self.current_mix:
@@ -36,7 +37,9 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		
 		for i in range(self.num_objectives):
 			self.mu[arm][i] = self.sum_mu[arm][i] / self.num_play[arm]
-		self.sorted_mu[arm] = sorted(self.mu[arm], reverse=True)
+		for a in range(self.num_arm):
+			# Refresh all because they might have been changed by the adaption module.
+			self.sorted_mu[a] = sorted(self.mu[a], reverse=True)
 		
 		# Compute the gradient that is assumed for gradient decent.
 		gradient = np.zeros(self.num_arm)
