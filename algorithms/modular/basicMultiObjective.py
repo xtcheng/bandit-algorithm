@@ -47,7 +47,7 @@ class BasicMultiObjective(AbstractMAB):
 			
 			
 			self.sum_rgt += gini_avg - optimal_costs
-			self.avg_rgt[t] += self.sum_rgt/(t+1)
+			self.avg_rgt[t] += gini_avg - optimal_costs
 			self.cum_rgt[t] += self.sum_rgt
 			self.psd_rgt[t] += pseudo - optimal_costs
 		print(self.selection_module.mu)
