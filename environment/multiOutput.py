@@ -28,3 +28,6 @@ class EnvMultiOutput:
 		for i in range(3):
 			con.append({'type':'ineq', 'fun': (lambda x : x[i])})
 		self.opt = optimize.minimize(gini, args=ar, x0=[1/self.num_arm]*self.num_arm, constraints=con).fun
+	
+	def getMu(self):
+		return self.mu

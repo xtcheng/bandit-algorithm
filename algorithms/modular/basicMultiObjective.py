@@ -36,7 +36,7 @@ class BasicMultiObjective(AbstractMAB):
 			
 			# Pseudo regret
 			ar = [self.weights]
-			for m in env.mu:
+			for m in env.getMu():
 				# Of course you must not use such direct access outside the analysis.
 				ar.append(m)
 			
