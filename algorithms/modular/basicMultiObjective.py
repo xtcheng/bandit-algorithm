@@ -34,22 +34,24 @@ class BasicMultiObjective(AbstractMAB):
 			ar.append(total / (t+1))
 			gini_avg = gini([1], ar)
 			
+			
 			# Pseudo regret
 			ar = [self.weights]
 			for m in env.getMu():
 				# Of course you must not use such direct access outside the analysis.
 				ar.append(m)
-			
 			# Keep track of how the alpha developes
 			total_mix += self.selection_module.current_mix
-			
 			pseudo = gini(total_mix / (t+1), ar)
 			
+			# Instantaneous regret
+			ins = gini(self.selection_module.current_mix, ar) - optimal_costs
 			
-			self.sum_rgt += gini_avg - optimal_costs
-			self.avg_rgt[t] += gini_avg - optimal_costs
-			self.cum_rgt[t] += self.sum_rgt
-			self.psd_rgt[t] += pseudo - optimal_costs
+			
+			self.sum_rgt += ins
+			self.avg_rgt[t] = self.sum_rgt / (t+1)
+			self.cum_rgt[t] = self.sum_rgt
+			self.psd_rgt[t] = pseudo - optimal_costs
 		print(self.selection_module.mu)
 		print("Settled on this mix:")
 		print(self.selection_module.current_mix)
