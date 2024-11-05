@@ -8,7 +8,9 @@ def test(T, repeats, envs, algorithms, algorithm_names, env_names):
 	psd_regret = []
 	has_pseudo = False
 	sum_times = [0]*len(algorithms)
-
+	
+	assert len(envs) == len(env_names) and len(algorithms) == len(algorithm_names)
+	
 	for env in envs:
 		for i, algorithm in enumerate(algorithms):
 			cum_regret.append([0]*T)

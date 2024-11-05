@@ -25,7 +25,7 @@ class BOCDModule:
 		self.fullReset()
 	
 	
-	def thisHappened(self, arm, reward):
+	def thisHappened(self, arm, reward, t):
 		# Removed the loop. It is taken care of by the caller.
 		
 		# New: Perform the calculations on the set of variables for the current arm. With this method, the existing code can be applied with only minor modifications.
