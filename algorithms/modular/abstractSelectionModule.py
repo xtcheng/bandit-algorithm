@@ -9,7 +9,7 @@ class AbstractSelectionModule:
 		pass
 	
 	
-	def thisHappened(self, arm, reward):
+	def thisHappened(self, arm, reward, timestep):
 		# To update the information after a pull.
 		self.sum_mu[arm] += reward
 		self.num_play[arm] += 1

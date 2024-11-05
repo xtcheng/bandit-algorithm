@@ -36,7 +36,7 @@ class GLRModule:
 			return (3/2)*(x - np.log(np.log(3/2)))
 	
 	
-	def thisHappened(self, arm, reward):
+	def thisHappened(self, arm, reward, t):
 		# Append the reward to the list of rewards for the pulled arm.
 		self.past_rewards[arm].append(reward)
 		self.past_rewards_sums[arm] += reward

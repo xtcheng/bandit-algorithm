@@ -11,7 +11,7 @@ class EnvMultiOutput:
 		self.weights = weights
 		for i in range(1, num_arm):
 			assert len(mu[i-1]) == len(mu[i])
-		self.calcOptimalCosts()
+		self.calcOptimalCosts(self.mu)
 		print("Optimal costs:", self.opt)
 	
 	def feedback(self,arm):
@@ -20,14 +20,15 @@ class EnvMultiOutput:
 			rwd[i] = self.mu[arm][i] + self.noise.sample_trunc()
 		return rwd, self.opt
 	
-	def calcOptimalCosts(self):
+	def calcOptimalCosts(self, mu):
 		ar = [self.weights]
-		for m in self.mu:
+		for m in mu:
 			ar.append(m)
 		con = [{'type':'eq', 'fun': (lambda x : sum(x)-1)}]
-		for i in range(3):
-			con.append({'type':'ineq', 'fun': (lambda x : x[i])})
-		self.opt = optimize.minimize(gini, args=ar, x0=[1/self.num_arm]*self.num_arm, constraints=con).fun
+		result = optimize.minimize(gini, args=ar, x0=[1/self.num_arm]*self.num_arm, constraints=con, bounds=[(0,1)]*self.num_arm)
+		self.opt = result.fun
+		print(result)
+		#print("Optimal costs:", self.opt)
 	
 	def getMu(self):
 		return self.mu

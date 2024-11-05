@@ -7,8 +7,8 @@ class AbstractMAB:
 		for t in range(0,self.T):
 			arm = self.selection_module.suggestArm()
 			reward, optimal_reward = env.feedback(arm)
-			self.selection_module.thisHappened(arm, reward)
-			self.adaption_module.thisHappened(arm, reward)
+			self.selection_module.thisHappened(arm, reward, t)
+			self.adaption_module.thisHappened(arm, reward, t)
 			
 			# For performance analysis
 			self.sum_rgt += (optimal_reward - reward)

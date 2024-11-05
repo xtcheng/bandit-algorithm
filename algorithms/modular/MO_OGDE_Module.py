@@ -20,7 +20,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 	def suggestArm(self):
 		# Select each arm once before performing the meaningful operations.
 		if 0 in self.num_play:
-			print("Index", self.num_play.index(0), "is 0!")
+			#print("Index", self.num_play.index(0), "is 0!")
 			return self.num_play.index(0)
 		else:
 			sum_mix = 0
@@ -29,7 +29,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			# Select a random arm according to the distribution
 			return np.random.choice(range(self.num_arm), p=(self.current_mix))
 	
-	def thisHappened(self, arm, reward):
+	def thisHappened(self, arm, reward, t):
 		# To update the information after a pull. It's still called reward, but it are actually costs this time.
 		self.sum_mu[arm] += reward
 		self.num_play[arm] += 1

@@ -22,8 +22,8 @@ class BasicMultiObjective(AbstractMAB):
 		for t in range(0,self.T):
 			arm = self.selection_module.suggestArm()
 			reward, optimal_costs = env.feedback(arm)
-			self.selection_module.thisHappened(arm, reward)
-			self.adaption_module.thisHappened(arm, reward)
+			self.selection_module.thisHappened(arm, reward, t)
+			self.adaption_module.thisHappened(arm, reward, t)
 			
 			
 			# For performance analysis
@@ -50,9 +50,9 @@ class BasicMultiObjective(AbstractMAB):
 			self.avg_rgt[t] += gini_avg - optimal_costs
 			self.cum_rgt[t] += self.sum_rgt
 			self.psd_rgt[t] += pseudo - optimal_costs
-		print(self.selection_module.mu)
-		print("Settled on this mix:")
-		print(self.selection_module.current_mix)
+		#print(self.selection_module.mu)
+		#print("Settled on this mix:")
+		#print(self.selection_module.current_mix)
 	
 	
 	def get_psd_rgt(self):
