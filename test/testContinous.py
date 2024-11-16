@@ -1,6 +1,7 @@
-from masterTester import test
 import sys
 sys.path.append('../')
+
+from helpers.masterTester import test
 
 from environment.envParabola import EnvParabola
 from algorithms.greedyProjection import GreedyProjection

@@ -2,7 +2,7 @@
 # For continuity reasons, I also modified some names. I usually write names of classes in uppercase and everything else in lowercase (which is the defacto standard for coding in most programming languages), and in this project, I used camelcase for names of classes and functions, and snakecase for parameters and variables.
 
 import numpy as np
-from algorithms.modular.bocdHelpers import *
+from helpers.bocdHelpers import *
 
 
 # The algorithm originally is for detecting a change in a single arm. So to apply it to mulitple arms, we need one set of the variables per arm. The least confusing way to do this is to use another class for that.

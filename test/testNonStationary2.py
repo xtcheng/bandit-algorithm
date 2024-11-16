@@ -1,6 +1,7 @@
-from masterTester import test
 import sys
 sys.path.append('../')
+
+from helpers.masterTester import test
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.env import env_stochastic
@@ -8,8 +9,8 @@ from environment.envNonStationary import env_non_stationary
 from algorithms.UCB1 import UCB1
 from algorithms.slidingWindowUCB import SlidingWindowUCB
 from algorithms.monitoredUCB import MonitoredUCB
-from algorithms.modular.glr_klUCB import GLR_klUCB
-from algorithms.modular.bocd import BOCD
+from algorithms.modular.moduleUsers.glr_klUCB import GLR_klUCB
+from algorithms.modular.moduleUsers.bocd import BOCD
 
 import numpy as np
 

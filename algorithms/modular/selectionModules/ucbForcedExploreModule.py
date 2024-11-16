@@ -2,7 +2,7 @@ import numpy as np
 import sys
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.abstractSelectionModule import AbstractSelectionModule
+from algorithms.modular.selectionModules.abstractSelectionModule import AbstractSelectionModule
 
 # Like ucb, but with forced exploration.
 

@@ -1,9 +1,9 @@
 import sys
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.abstractMAB import AbstractMAB
-from algorithms.modular.ucbForcedExploreModule import UCBForcedExploreModule
-from algorithms.modular.glrModule import GLRModule
+from algorithms.modular.moduleUsers.abstractMAB import AbstractMAB
+from algorithms.modular.selectionModules.ucbForcedExploreModule import UCBForcedExploreModule
+from algorithms.modular.adaptionModules.glrModule import GLRModule
 
 class GLR_klUCB(AbstractMAB):
 	def __init__(self,T,num_arm, alpha, delta, global_restart, lazyness=1):

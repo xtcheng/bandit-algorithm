@@ -1,10 +1,10 @@
 import sys
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.abstractMAB import AbstractMAB
-from algorithms.modular.MO_OGDE_Module import MO_OGDE_Module
-from algorithms.modular.nullAdaptionModule import NullAdaptionModule
-from algorithms.modular.gini import gini
+from algorithms.modular.moduleUsers.abstractMAB import AbstractMAB
+from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
+from algorithms.modular.adaptionModules.nullAdaptionModule import NullAdaptionModule
+from helpers.gini import gini
 
 class BasicMultiObjective(AbstractMAB):
 	def __init__(self,T,num_arm, num_objectives, delta, gini_weights):

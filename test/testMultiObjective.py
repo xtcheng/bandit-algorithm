@@ -1,10 +1,11 @@
-from masterTester import test
 import sys
 sys.path.append('../')
 
+from helpers.masterTester import test
+
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.multiOutput import EnvMultiOutput
-from algorithms.modular.basicMultiObjective import BasicMultiObjective
+from algorithms.modular.moduleUsers.basicMultiObjective import BasicMultiObjective
 
 import numpy as np
 

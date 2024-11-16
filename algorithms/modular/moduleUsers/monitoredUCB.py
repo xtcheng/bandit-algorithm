@@ -1,9 +1,9 @@
 import sys
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.abstractMAB import AbstractMAB
-from algorithms.modular.ucbForcedExploreModule import UCBForcedExploreModule
-from algorithms.modular.monitorModule import MonitorModule
+from algorithms.modular.moduleUsers.abstractMAB import AbstractMAB
+from algorithms.modular.selectionModules.ucbForcedExploreModule import UCBForcedExploreModule
+from algorithms.modular.adaptionModules.monitorModule import MonitorModule
 
 class MonitoredUCB(AbstractMAB):
 	def __init__(self,T,num_arm, w, b, gamma):

@@ -5,7 +5,7 @@ from cvxopt import *
 import math
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.abstractSelectionModule import AbstractSelectionModule
+from algorithms.modular.selectionModules.abstractSelectionModule import AbstractSelectionModule
 
 class MO_OGDE_Module(AbstractSelectionModule):
 	def __init__(self,T,num_arm, num_objectives, delta, gini_weights):

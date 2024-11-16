@@ -1,11 +1,12 @@
-from masterTester import test
 import sys
 sys.path.append('../')
+
+from helpers.masterTester import test
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.env import env_stochastic
 from algorithms.UCB1 import UCB1
-from algorithms.modular.ucb import ModularUCB
+from algorithms.modular.moduleUsers.ucb import ModularUCB
 
 import numpy as np
 

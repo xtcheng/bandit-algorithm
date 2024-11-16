@@ -1,11 +1,12 @@
-from masterTester import test
 import sys
 sys.path.append('../')
+
+from helpers.masterTester import test
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.envNonStationary import env_non_stationary
 from algorithms.monitoredUCB import MonitoredUCB
-from algorithms.modular.monitoredUCB import MonitoredUCB as MonitoredUCBModular
+from algorithms.modular.moduleUsers.monitoredUCB import MonitoredUCB as MonitoredUCBModular
 
 import numpy as np
 

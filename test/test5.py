@@ -7,9 +7,10 @@ Created on Fri May 31 11:17:30 2024
 test the algorithms in paper "Finite-time Analysis of the Multiarmed Bandit Problem"
 """
 
-from masterTester import test
 import sys
 sys.path.append('../')
+
+from helpers.masterTester import test
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.env import env_stochastic

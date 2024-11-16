@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import optimize
-from algorithms.modular.gini import gini
+from helpers.gini import gini
 
 class EnvMultiOutput:
 	def __init__(self,num_arm,mu, noise, weights):

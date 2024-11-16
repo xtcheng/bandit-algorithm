@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import optimize
-from algorithms.modular.gini import gini
+from helpers.gini import gini
 from environment.multiOutput import EnvMultiOutput
 
 class EnvMultiOutputNonStationary(EnvMultiOutput):
