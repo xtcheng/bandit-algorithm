@@ -15,7 +15,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		self.delta = delta
 		self.current_mix = np.array([1/num_arm]*num_arm)
 		self.gini_weights = gini_weights
-		self.fullReset
+		self.fullReset()
 	
 	def suggestArm(self):
 		# Select each arm once before performing the meaningful operations.
