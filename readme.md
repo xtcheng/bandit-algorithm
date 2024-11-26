@@ -78,7 +78,7 @@ These are the adaption modules:
 - ```DiscountModule```: The breakpoint adaption logic from the original Discounted UCB strategy. It requires a discount factor that is multiplied onto the history of the selection module in each timestep.
 - ```GLRModule```: The breakpoint adaption logic from the original GLR-klUCB strategy. It requires a hyper parameter, will reset either one arm or everything when detecting a breakpoint (given by the next argument) and the last argument how many timesteps shall be skipped before running its very costly breakpoint detection again.
 - ```MonitorModule```: The breakpoint adaption logic from the original Monitored UCB strategy. It requires a window length which to use for the comparision of more and less recent breakpoint detection and a detection threshold. It will reset everything upon encountering a breakpoint.
-- ```SlidingWindowModule```: A module that does nothing. It serves as a stand-in for places that expect any adaption module to exist, but no breakpoint adaption shall be performed because we only want to use the selection module.
+- ```NullAdaptionModule```: A module that does nothing. It serves as a stand-in for places that expect any adaption module to exist, but no breakpoint adaption shall be performed because we only want to use the selection module.
 - ```SlidingWindowModule```: The breakpoint adaption logic from the original Sliding Window UCB strategy. It requires a window length and will remove the impact of any feedback that is older than that from the selection module.
 
 #### modular/moduleUsers
@@ -114,6 +114,7 @@ The following environments are available:
 - ```EnvParabola```: An environment for online convex optimization strategies. The underlying function is parabola-like and its parameters oscillate slightly after a couple of turns if set to do so. Depending on what the agent is allowed to do, it may return the current function.
 - ```EnvMultiOutput```: The default environment for multi-objective MAB, where feedback is multi-dimensional and the agent has to minimize the generalized gini index of the total feedback.
 - ```EnvMultiOutputNonStationary```: Like ```EnvMultiOutput``` but supports breakpoints like in ```env_non_stationary```. This means that the optimal mix of actions will likely change at fixed timesteps, and this environment will recalculate it then.
+- ```EnvMultiOutputRandomized```: Like ```EnvMultiOutput``` but the noise and the expected costs per arm and dimension are uniform drawn randomly _on each reset_.
 
 
 ## Moving files
