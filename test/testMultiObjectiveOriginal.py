@@ -24,7 +24,7 @@ if __name__ == "__main__":
 	envs.append(EnvMultiOutputRandomized(num_arm, num_objectives, weights))
 
 	algorithms = list()
-	algorithms.append(BasicMultiObjective(T, num_arm=num_arm, num_objectives=num_objectives, delta=0.95, gini_weights=weights))
+	algorithms.append(BasicMultiObjective(T, num_arm=num_arm, num_objectives=num_objectives, delta=0.05, gini_weights=weights))
 
 	algorithm_names = ["MO_OGDE"]
 	env_names = ["random environment"]

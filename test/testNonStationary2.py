@@ -22,7 +22,7 @@ if __name__ == '__main__':
 	mu1 = np.array([0.5, 0.3, 0.4])
 	mu2 = np.array([0.5, 0.3, 0.9])
 	mu3 = np.array([0.5, 0.3, 0.4])
-	Trial = 1
+	Trial = 8
 	noise = gn(1,0,0.01,[-0.2,0.2])
 	envs = list()
 	envs.append(env_non_stationary(num_arm, [mu1, mu2, mu3], noise, [3000, 5000]))

@@ -27,7 +27,7 @@ class EnvMultiOutput:
 		con = [{'type':'eq', 'fun': (lambda x : sum(x)-1)}]
 		result = optimize.minimize(gini, args=ar, x0=[1/self.num_arm]*self.num_arm, constraints=con, bounds=[(0,1)]*self.num_arm)
 		self.opt = result.fun
-		print(result)
+		#print(result)
 		#print("Optimal costs:", self.opt)
 	
 	def getMu(self):

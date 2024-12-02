@@ -17,11 +17,12 @@ class ArmContainer:
 
 
 class BOCDModule:
-	def __init__(self, selection_module, num_arm, T):
+	def __init__(self, selection_module, num_arm, T, dimensions=1):
 		self.selection_module = selection_module
 		self.num_arm = num_arm
 		self.gamma = 1/T # Switching Rate
-		self.containers = [0]*self.num_arm
+		self.dimensions = dimensions
+		self.containers = [0]*self.num_arm*self.dimensions
 		self.fullReset()
 	
 	
@@ -29,28 +30,44 @@ class BOCDModule:
 		# Removed the loop. It is taken care of by the caller.
 		
 		# New: Perform the calculations on the set of variables for the current arm. With this method, the existing code can be applied with only minor modifications.
-		current = self.containers[arm]
 		
-		estimated_best_expert = np.argmax(current.forecaster_distribution)
-		# Restart precedure
-		if not(estimated_best_expert == 0):
-			# Reinitialization
-			current.alphas = np.array([1])
-			current.betas = np.array([1])
-			current.forecaster_distribution = np.array([1])
-			current.like1 = 1
+		# If we observe a breakpoints in one dimension of one arm, we will reset the full arm because we do not assume the dimensions of the same(!) arm to be independent.
+		reset_pending = False
+		
+		for dimension in range(self.dimensions):
+			current = self.containers[dimension + arm*self.dimensions]
 			
+			# Modified: This strategy expects the reward to come from a bernulli distribution, so take the actual reward and interpret it as the propability.
+			if self.dimensions > 1:
+				rwd = reward[dimension]
+			else:
+				# If we are in a single-objective setting, the reward is just a number.
+				rwd = reward
+			bernulli_reward = int (np.random.uniform() < rwd)
+			(current.forecaster_distribution, current.pseudo_dist, current.like1) = updateForecasterDistribution_m(current.forecaster_distribution, current.pseudo_dist, current.alphas, current.betas, bernulli_reward, self.gamma, current.like1)
+			(current.alphas, current.betas) = updateLaplacePrediction(current.alphas, current.betas, bernulli_reward) #Update the laplace predictor
+			
+			estimated_best_expert = np.argmax(current.forecaster_distribution)
+			# Restart precedure
+			if not(estimated_best_expert == 0):
+				reset_pending = True
+		
+		if reset_pending:
+			for dimension in range(self.dimensions):
+				current = self.containers[dimension + arm*self.dimensions]
+				# Reinitialization
+				current.alphas = np.array([1])
+				current.betas = np.array([1])
+				current.forecaster_distribution = np.array([1])
+				current.like1 = 1
+				
 			# New: also perform the reset on the part that selects an arm.
+			print("Chance detected in dimension", dimension, "of arm", arm, "at timestep", t)
 			self.selection_module.resetArm(arm)
-			
-			# Removed the list of last breakpoints. It was only used for output in the original.
 		
-		# Modified: This strategy expects the reward to come from a bernulli distribution, so take the actual reward and interpret it as the propability.
-		bernulli_reward = int (np.random.uniform() < reward)
-		(current.forecaster_distribution, current.pseudo_dist, current.like1) = updateForecasterDistribution_m(current.forecaster_distribution, current.pseudo_dist, current.alphas, current.betas, bernulli_reward, self.gamma, current.like1)
-		(current.alphas, current.betas) = updateLaplacePrediction(current.alphas, current.betas, bernulli_reward) #Update the laplace predictor
+		# Removed the list of last breakpoints. It was only used for output in the original.
 	
 	
 	def fullReset(self):
-		for i in range(self.num_arm):
+		for i in range(self.num_arm * self.dimensions):
 			self.containers[i] = ArmContainer()

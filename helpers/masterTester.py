@@ -46,7 +46,7 @@ def refine(samples, timesteps, rpts):
 	for x in range(rpts):
 		one_series = samples.get() # timesteps for ONE of the repetitions. get will block until the data is available.
 		for i in range(timesteps):
-			ret[i].append(one_series[i])
+			ret[i].append(float(one_series[i])) # cast to float to ensure it is not some weird numpy object that would cause trouble in the plotting.
 	return ret
 
 def run(algorithm, env, raw_cum, raw_avg, raw_psd, todo):

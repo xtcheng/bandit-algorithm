@@ -46,10 +46,10 @@ if __name__ == "__main__":
 	envs.append(EnvMultiOutputNonStationary(num_arm, [mu1, mu2, mu3], noise, weights, [100, 150]))
 
 	algorithms = list()
-	algorithms.append(BasicMultiObjective(T, num_arm, num_objectives=2, delta=0.95, gini_weights=weights))
-	algorithms.append(SlidingWindowMO(T, num_arm, num_objectives=2, delta=0.95, gini_weights=weights, window_len=20))
-	algorithms.append(DiscountedMO(T, num_arm, num_objectives=2, delta=0.95, gini_weights=weights, gamma=0.95))
-	algorithms.append(MonitoredMO(T, num_arm, num_objectives=2, delta=0.95, gini_weights=weights, w=30, b=1))
+	algorithms.append(BasicMultiObjective(T, num_arm, num_objectives=2, delta=0.05, gini_weights=weights))
+	algorithms.append(SlidingWindowMO(T, num_arm, num_objectives=2, delta=0.05, gini_weights=weights, window_len=20))
+	algorithms.append(DiscountedMO(T, num_arm, num_objectives=2, delta=0.05, gini_weights=weights, gamma=0.95))
+	algorithms.append(MonitoredMO(T, num_arm, num_objectives=2, delta=0.05, gini_weights=weights, w=30, b=1))
 
 	algorithm_names = []
 	algorithm_names.append("MO_OGDE")

@@ -66,6 +66,12 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		self.num_play = [0]*self.num_arm
 		self.relative_start = [1]*self.num_arm # But first disregard resetting single arms.
 		self.current_turn = 1
+	
+	def resetArm(self, arm):
+		# Reset only one arm.
+		self.sum_mu[arm] = np.zeros(self.num_objectives)
+		self.num_play[arm] = 0
+		self.relative_start[arm] = 1
 		
 	def change_A(self,a,K,t):
 		# Taken almost directly from https://github.com/zhacheny/Optimization-based-on-GNI-Index-For-multi-objective-bandits/blob/master/Codes/LearningML.py
