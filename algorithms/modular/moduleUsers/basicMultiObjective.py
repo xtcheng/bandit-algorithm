@@ -18,7 +18,6 @@ class BasicMultiObjective(AbstractMAB):
 	# run needs to be redifined because of the reward being multi-dimensional and there is no optimal action, but an optimal mix.
 	def run(self,env):
 		total = 0 # Total costs
-		total_mix = 0 # Sum of all alphas the selection module uses over time.
 		for t in range(0,self.T):
 			arm = self.selection_module.suggestArm()
 			reward, optimal_costs = env.feedback(arm)
@@ -35,33 +34,28 @@ class BasicMultiObjective(AbstractMAB):
 			gini_avg = gini([1], ar)
 			
 			
-			# Pseudo regret
+			# Instantaneous regret
 			ar = [self.weights]
 			for m in env.getMu():
 				# Of course you must not use such direct access outside the analysis.
 				ar.append(m)
-			# Keep track of how the alpha developes
-			total_mix += self.selection_module.current_mix
-			pseudo = gini(total_mix / (t+1), ar)
-			
-			# Instantaneous regret
 			ins = gini(self.selection_module.current_mix, ar) - optimal_costs
 			
 			
 			self.sum_rgt += ins
 			self.avg_rgt[t] = self.sum_rgt / (t+1)
 			self.cum_rgt[t] = self.sum_rgt
-			self.psd_rgt[t] = pseudo - optimal_costs
+			self.eff_rgt[t] = gini_avg - optimal_costs
 		#print(self.selection_module.mu)
 		#print("Settled on this mix:")
 		#print(self.selection_module.current_mix)
 	
 	
-	def get_psd_rgt(self):
-		return self.psd_rgt
+	def get_eff_rgt(self):
+		return self.eff_rgt
 	
 	
 	def clear(self):
-		# Also set the Pseudo regret because we have it.
-		self.psd_rgt = [0]*self.T
+		# Also set the effective regret because we have it.
+		self.eff_rgt = [0]*self.T
 		super().clear()

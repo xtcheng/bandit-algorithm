@@ -49,13 +49,13 @@ def refine(samples, timesteps, rpts):
 			ret[i].append(float(one_series[i])) # cast to float to ensure it is not some weird numpy object that would cause trouble in the plotting.
 	return ret
 
-def run(algorithm, env, raw_cum, raw_avg, raw_psd, todo):
+def run(algorithm, env, raw_cum, raw_avg, raw_eff, todo):
 	for x in range(todo):
 		algorithm.run(env)
 		raw_cum.put(algorithm.get_cum_rgt())
 		raw_avg.put(algorithm.get_avg_rgt())
-		if hasattr(algorithm, "get_psd_rgt"):
-			raw_psd.put(algorithm.get_psd_rgt())
+		if hasattr(algorithm, "get_eff_rgt"):
+			raw_eff.put(algorithm.get_eff_rgt())
 		
 		algorithm.clear()
 		if hasattr(env, "clear"):
@@ -68,9 +68,9 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 	avg_regret_var = []
 	cum_regret = []
 	cum_regret_var = []
-	psd_regret = []
-	psd_regret_var = []
-	has_pseudo = False
+	eff_regret = []
+	eff_regret_var = []
+	has_eff = False
 	#sum_times = [0]*len(algorithms)
 	
 	AVAILABLE_CORES = 8 # How many subprocesses will be spawned at maximum. This number should not exceed the number of physical cores available on your system to avoid diminishing returns and crashes! If less repetitions are wanted, only that much processes will be spawned. If more repetitions are wanted, they will be equally distributed among the processes.
@@ -82,14 +82,14 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 			# Use the special queue that is intended for exchanging data among processes from the multiprocessing package.
 			raw_cum = multiprocessing.Queue()
 			raw_avg = multiprocessing.Queue()
-			raw_psd = multiprocessing.Queue()
+			raw_eff = multiprocessing.Queue()
 			
 			cum_regret.append([0]*T)
 			avg_regret.append([0]*T)
-			psd_regret.append([0]*T)
+			eff_regret.append([0]*T)
 			cum_regret_var.append([0]*T)
 			avg_regret_var.append([0]*T)
-			psd_regret_var.append([0]*T)
+			eff_regret_var.append([0]*T)
 			start_time = time.perf_counter()
 			processes = list()
 			assigned_rpts = 0
@@ -104,7 +104,7 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 			for trial in range(required_processes):
 				# Do the multiprocessing in the repetitions and block until all are done. Assumption: Running a fixed strategy on a fixed environment always takes roughly the same amount of time, so the blocking is no real issue.
 				rpts_here = min(rpts_per_process, (rpts - assigned_rpts))
-				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_psd, rpts_here))
+				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, rpts_here))
 				process.start()
 				print("Process spawned, performing", rpts_here, "repetitions.")
 				processes.append(process)
@@ -119,9 +119,9 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 			# Problem: We have a list of repetitions with queues of turns, but we need a list of turns with lists of repetitions because we can only compute the variance AFTER we have the average of one turn in different repetitions. So swap everything to be arranged how we need it to avoid making things unnecessarily complicated.
 			refined_cum = refine(raw_cum, T, rpts)
 			refined_avg = refine(raw_avg, T, rpts)
-			if hasattr(algorithm, "get_psd_rgt"):
-				refined_psd = refine(raw_psd, T, rpts)
-				has_pseudo = True
+			if hasattr(algorithm, "get_eff_rgt"):
+				refined_eff = refine(raw_eff, T, rpts)
+				has_eff = True
 			
 			# All data has been collected by now, so join the subprocesses.
 			for process in processes:
@@ -130,15 +130,15 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 			for y in range(T):
 				cum_regret[-1][y], cum_regret_var[-1][y] = evaluate(refined_cum[y])
 				avg_regret[-1][y], avg_regret_var[-1][y] = evaluate(refined_avg[y])
-				if hasattr(algorithm, "get_psd_rgt"):
-					psd_regret[-1][y], psd_regret_var[-1][y] = evaluate(refined_psd[y])
+				if hasattr(algorithm, "get_eff_rgt"):
+					eff_regret[-1][y], eff_regret_var[-1][y] = evaluate(refined_eff[y])
 	
 	#for i in range(len(algorithms)):
 		#print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (rpts*len(envs)))+" seconds.")
 	
 	plotOnce(env_names, algorithm_names, cum_regret, cum_regret_var, "Cumulative Regret", logscale)
-	if has_pseudo:
-		plotOnce(env_names, algorithm_names, psd_regret, psd_regret_var, "Pseudo Regret", logscale)
+	if has_eff:
+		plotOnce(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret", logscale)
 	plotOnce(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret", logscale)
 	
 	plt.show()
