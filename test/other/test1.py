@@ -8,7 +8,7 @@ test the algorithms in paper "Finite-time Analysis of the Multiarmed Bandit Prob
 """
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.env import env_stochastic

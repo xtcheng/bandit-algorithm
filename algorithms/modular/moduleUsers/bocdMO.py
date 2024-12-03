@@ -3,7 +3,7 @@ if not "../" in sys.path:
 	sys.path.append('../')
 from algorithms.modular.moduleUsers.basicMultiObjective import BasicMultiObjective
 from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
-from algorithms.modular.bocdModule import BOCDModule
+from algorithms.modular.adaptionModules.bocdModule import BOCDModule
 from helpers.gini import gini
 
 class BOCD_MO(BasicMultiObjective):

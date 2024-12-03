@@ -3,7 +3,7 @@ if not "../" in sys.path:
 	sys.path.append('../')
 from algorithms.modular.moduleUsers.abstractMAB import AbstractMAB
 from algorithms.modular.selectionModules.ucbForcedExploreModule import UCBForcedExploreModule
-from algorithms.modular.bocdModule import BOCDModule
+from algorithms.modular.adaptionModules.bocdModule import BOCDModule
 
 class BOCD(AbstractMAB):
 	def __init__(self,T,num_arm, alpha):

@@ -1,6 +1,6 @@
 import numpy as np
 import sympy
-from algorithms.commonTools import *
+from helpers.commonTools import *
 
 # The experts for the meta function. They hardly do anything on their own, they just suggest inputs and receive estimated gradients.
 class BGD_Expert:
