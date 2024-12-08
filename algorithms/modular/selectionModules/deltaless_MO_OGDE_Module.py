@@ -1,0 +1,20 @@
+import numpy as np
+import sys
+import os
+from cvxopt import *
+import math
+if not "../" in sys.path:
+	sys.path.append('../')
+from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
+
+class Deltaless_MO_OGDE_Module(MO_OGDE_Module):
+	def __init__(self,T,num_arm, num_objectives, gini_weights):
+		self.T = T
+		self.num_arm = num_arm
+		self.num_objectives = num_objectives
+		self.current_mix = np.array([1/num_arm]*num_arm)
+		self.gini_weights = gini_weights
+		self.fullReset()
+	
+	def getLearningRate(self):
+		return (math.sqrt(1/self.num_arm + self.num_objectives**2) / math.sqrt(self.current_turn))

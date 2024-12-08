@@ -29,6 +29,9 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			# Select a random arm according to the distribution
 			return np.random.choice(range(self.num_arm), p=(self.current_mix))
 	
+	def getLearningRate(self):
+		return (math.sqrt(2.0)*math.sqrt(math.log(2/self.delta)/(self.current_turn+self.num_arm)))/(1-1/math.sqrt(self.num_arm))
+	
 	def thisHappened(self, arm, reward, t):
 		# To update the information after a pull. It's still called reward, but it are actually costs this time.
 		self.sum_mu[arm] += reward
@@ -51,7 +54,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		#print(gradient)
 		
 		# Perform gradient decent.
-		learning_rate = (np.sqrt(2) / (1 - (1/np.sqrt(self.num_arm))) ) * np.sqrt(np.log(2/self.delta) / self.current_turn)
+		learning_rate = self.getLearningRate()
 		for i in range(self.num_arm):
 			self.current_mix[i] -= learning_rate * gradient[i]
 		
@@ -81,7 +84,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		stdout = sys.stdout
 		sys.stdout = open(os.devnull, 'w')
 		
-		beta = (math.sqrt(2.0)*math.sqrt(math.log(2/self.delta)/(t+K)))/(1-1/math.sqrt(K))
+		beta = self.getLearningRate()
 		beta /= K
 		if(beta >1/K):
 			beta = 1/K
