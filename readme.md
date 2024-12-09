@@ -58,10 +58,10 @@ All selection modules provide the following interfaces:
 
 And these are the currently available modules:
 - ```AbstractSelectionModule```: Serves as a superclass to most of the selection modules. This avoids redundancy as the using modules are mostly identical except for the actions in the constructor and in ```suggestArm```.
-- ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
+- ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy, see Busa-Fekete et al. (2017): "Multi-objective Bandits: Optimizing the Generalized Gini Index". It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
 - ```Deltaless_MO_OGDE_Module```: A variant of the ```MO_OGDE_Module``` with a simplified version of learning rate calculation that uses no delta (which in the original version was the probability that certain features cannot be guaranteed to hold).
 - ```PL_MO_OGDE_Module```: A variant of the ```Deltaless_MO_OGDE_Module``` that includes a modifier for the learning rate. Intended for expert strategies.
-- ```UCBModule```: The core logic of the original UCB strategy. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
+- ```UCBModule```: The core logic of the original UCB strategy, see Auer et al. (2002): "Finite-time Analysis of the Multi-armed Bandit Problem", Machine Learning, 47, pp. 235–256. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
 - ```UCBForcedExploreModule```: Like UCB, but with forced exploration. The fraction of exploration to be equally distributed across all arms is dictated by a new argument.
 
 #### modular/adaptionModules
@@ -76,12 +76,12 @@ All adaption modules provide the following interfaces:
 - ```fullReset(self):``` Resets the module to its original state.
 
 These are the adaption modules:
-- ```BOCDModule```: The breakpoint adaption logic from the original Bayesian Online Change-point Detection strategy. It calculates its parameters from the number of planned timesteps. It resets an arm in the selection module whenever it believes there has been a breakpoint in that arm.
-- ```DiscountModule```: The breakpoint adaption logic from the original Discounted UCB strategy. It requires a discount factor that is multiplied onto the history of the selection module in each timestep.
-- ```GLRModule```: The breakpoint adaption logic from the original GLR-klUCB strategy. It requires a hyper parameter, will reset either one arm or everything when detecting a breakpoint (given by the next argument) and the last argument how many timesteps shall be skipped before running its very costly breakpoint detection again.
-- ```MonitorModule```: The breakpoint adaption logic from the original Monitored UCB strategy. It requires a window length which to use for the comparision of more and less recent breakpoint detection and a detection threshold. It will reset everything upon encountering a breakpoint.
+- ```BOCDModule```: The breakpoint adaption logic from the original Bayesian Online Change-point Detection strategy, see Alami et al. (2020): "Restarted Bayesian Online Change-point Detector achieves Optimal Detection Delay". It calculates its parameters from the number of planned timesteps. It resets an arm in the selection module whenever it believes there has been a breakpoint in that arm.
+- ```DiscountModule```: The breakpoint adaption logic from the original Discounted UCB strategy, see Garivier et al. (2008): "On Upper-Confidence Bound Policies for Non-Stationary Bandit Problems". It requires a discount factor that is multiplied onto the history of the selection module in each timestep.
+- ```GLRModule```: The breakpoint adaption logic from the original GLR-klUCB strategy, see Besson et al. (2022): "Efficient Change-Point Detection for Tackling Piecewise-Stationary Bandits". It requires a hyper parameter, will reset either one arm or everything when detecting a breakpoint (given by the next argument) and the last argument how many timesteps shall be skipped before running its very costly breakpoint detection again.
+- ```MonitorModule```: The breakpoint adaption logic from the original Monitored UCB strategy, see Cao et al. (2019): "Nearly Optimal Adaptive Procedure with Change Detection for Piecewise-Stationary Bandit". It requires a window length which to use for the comparision of more and less recent breakpoint detection and a detection threshold. It will reset everything upon encountering a breakpoint.
 - ```NullAdaptionModule```: A module that does nothing. It serves as a stand-in for places that expect any adaption module to exist, but no breakpoint adaption shall be performed because we only want to use the selection module.
-- ```SlidingWindowModule```: The breakpoint adaption logic from the original Sliding Window UCB strategy. It requires a window length and will remove the impact of any feedback that is older than that from the selection module.
+- ```SlidingWindowModule```: The breakpoint adaption logic from the original Sliding Window UCB strategy, see Garivier et al. (2008): "On Upper-Confidence Bound Policies for Non-Stationary Bandit Problems". It requires a window length and will remove the impact of any feedback that is older than that from the selection module.
 
 #### modular/moduleUsers
 Scripts that combine selection and adaption modules to form actual strategies that satisfy the requirements listed under **algorithms**.
