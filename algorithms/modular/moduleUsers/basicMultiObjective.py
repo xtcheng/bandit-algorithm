@@ -4,12 +4,14 @@ if not "../" in sys.path:
 from algorithms.modular.moduleUsers.abstractMAB import AbstractMAB
 from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
 from algorithms.modular.adaptionModules.nullAdaptionModule import NullAdaptionModule
+from algorithms.modular.historyContainerMO import HistoryContainerMO
 from helpers.gini import gini
 
 class BasicMultiObjective(AbstractMAB):
 	def __init__(self,T,num_arm, num_objectives, delta, gini_weights):
-		self.selection_module = MO_OGDE_Module(T,num_arm, num_objectives, delta, gini_weights)
-		self.adaption_module = NullAdaptionModule(self.selection_module)
+		self.historyContainer = HistoryContainerMO(num_arm, num_objectives)
+		self.selection_module = MO_OGDE_Module(self.historyContainer, T, num_arm, num_objectives, delta, gini_weights)
+		self.adaption_module = NullAdaptionModule(self.historyContainer)
 		self.weights = gini_weights
 		
 		super().__init__(T)
@@ -21,7 +23,7 @@ class BasicMultiObjective(AbstractMAB):
 		for t in range(0,self.T):
 			arm = self.selection_module.suggestArm()
 			reward, optimal_costs = env.feedback(arm)
-			self.selection_module.thisHappened(arm, reward, t)
+			self.historyContainer.thisHappened(arm, reward, t)
 			self.adaption_module.thisHappened(arm, reward, t)
 			
 			
@@ -58,4 +60,5 @@ class BasicMultiObjective(AbstractMAB):
 	def clear(self):
 		# Also set the effective regret because we have it.
 		self.eff_rgt = [0]*self.T
+		self.historyContainer.fullReset()
 		super().clear()

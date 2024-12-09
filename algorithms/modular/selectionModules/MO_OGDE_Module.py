@@ -8,20 +8,21 @@ if not "../" in sys.path:
 from algorithms.modular.selectionModules.abstractSelectionModule import AbstractSelectionModule
 
 class MO_OGDE_Module(AbstractSelectionModule):
-	def __init__(self,T,num_arm, num_objectives, delta, gini_weights):
+	def __init__(self, history, T, num_arm, num_objectives, delta, gini_weights):
 		self.T = T
 		self.num_arm = num_arm
 		self.num_objectives = num_objectives
 		self.delta = delta
-		self.current_mix = np.array([1/num_arm]*num_arm)
 		self.gini_weights = gini_weights
+		self.history = history
+		self.history.register(self)
 		self.fullReset()
 	
 	def suggestArm(self):
 		# Select each arm once before performing the meaningful operations.
-		if 0 in self.num_play:
-			#print("Index", self.num_play.index(0), "is 0!")
-			return self.num_play.index(0)
+		if 0 in self.history.num_play:
+			#print("Index", self.history.num_play.index(0), "is 0!")
+			return self.history.num_play.index(0)
 		else:
 			sum_mix = 0
 			for m in self.current_mix:
@@ -30,25 +31,14 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			return np.random.choice(range(self.num_arm), p=(self.current_mix))
 	
 	def getLearningRate(self):
-		return (math.sqrt(2.0)*math.sqrt(math.log(2/self.delta)/(self.current_turn+self.num_arm)))/(1-1/math.sqrt(self.num_arm))
+		return (math.sqrt(2.0)*math.sqrt(math.log(2/self.delta)/(self.history.current_turn+self.num_arm)))/(1-1/math.sqrt(self.num_arm))
 	
-	def thisHappened(self, arm, reward, t):
-		# To update the information after a pull. It's still called reward, but it are actually costs this time.
-		self.sum_mu[arm] += reward
-		self.num_play[arm] += 1
-		self.current_turn += 1
-		
-		for i in range(self.num_objectives):
-			self.mu[arm][i] = self.sum_mu[arm][i] / self.num_play[arm]
-		for a in range(self.num_arm):
-			# Refresh all because they might have been changed by the adaption module.
-			self.sorted_mu[a] = sorted(self.mu[a], reverse=True)
-		
+	def updateMix(self):
 		# Compute the gradient that is assumed for gradient decent.
 		gradient = np.zeros(self.num_arm)
 		for i in range(self.num_arm):
 			for j in range(self.num_objectives):
-				gradient[i] += self.sorted_mu[i][j] * self.gini_weights[j]
+				gradient[i] += self.history.sorted_mu[i][j] * self.gini_weights[j]
 			# Weight by the probability of that arm being picked because we want to evaluate the gradient at the current position.
 			gradient[i] *= self.current_mix[i]
 		#print(gradient)
@@ -59,23 +49,12 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			self.current_mix[i] -= learning_rate * gradient[i]
 		
 		# Project back into the feasible set.
-		self.current_mix = self.change_A(self.current_mix, self.num_arm, self.current_turn)
+		self.current_mix = self.change_A(self.current_mix, self.num_arm, self.history.current_turn)
 	
 	def fullReset(self):
-		# Reset everything to the start.
-		self.sum_mu = np.zeros((self.num_arm, self.num_objectives))
-		self.mu = np.zeros((self.num_arm, self.num_objectives))
-		self.sorted_mu = np.zeros((self.num_arm, self.num_objectives))
-		self.num_play = [0]*self.num_arm
-		self.relative_start = [1]*self.num_arm # But first disregard resetting single arms.
-		self.current_turn = 1
+		self.current_mix = np.array([1/self.num_arm]*self.num_arm)
 	
-	def resetArm(self, arm):
-		# Reset only one arm.
-		self.sum_mu[arm] = np.zeros(self.num_objectives)
-		self.num_play[arm] = 0
-		self.relative_start[arm] = 1
-		
+	
 	def change_A(self,a,K,t):
 		# Taken almost directly from https://github.com/zhacheny/Optimization-based-on-GNI-Index-For-multi-objective-bandits/blob/master/Codes/LearningML.py
 		# TODO: Can the projection be performed in a simpler way?
