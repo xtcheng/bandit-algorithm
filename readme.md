@@ -60,6 +60,7 @@ And these are the currently available modules:
 - ```AbstractSelectionModule```: Serves as a superclass to most of the selection modules. This avoids redundancy as the using modules are mostly identical except for the actions in the constructor and in ```suggestArm```.
 - ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
 - ```Deltaless_MO_OGDE_Module```: A variant of the ```MO_OGDE_Module``` with a simplified version of learning rate calculation that uses no delta (which in the original version was the probability that certain features cannot be guaranteed to hold).
+- ```PL_MO_OGDE_Module```: A variant of the ```Deltaless_MO_OGDE_Module``` that includes a modifier for the learning rate. Intended for expert strategies.
 - ```UCBModule```: The core logic of the original UCB strategy. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
 - ```UCBForcedExploreModule```: Like UCB, but with forced exploration. The fraction of exploration to be equally distributed across all arms is dictated by a new argument.
 
@@ -94,6 +95,7 @@ The module using scripts include:
 - ```AbstractMAB```: Servers as the superclass to most modular strategies. These strategies differ only in what modules they use and the rest is identical, so all the code that would otherwise be copy-pasted is in ```AbstractMAB``` instead.
 - ```BasicMultiObjective```: The original Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It consists of the ```MO_OGDE_Module``` and the ```NullAdaptionModule```.
 - ```DeltalessMultiObjective```: A simplified version of ```BasicMultiObjective``` that uses the ```Deltaless_MO_OGDE_Module``` instead of the ```MO_OGDE_Module```.
+- ```exptertsMultiObjective```: Meta-learning version of ```BasicMultiObjective```. It uses multiple instances of the ```PL_MO_OGDE_Module``` and tries to listen to the best expert most.
 - ```BOCD```: The original Bayesian Online Change-point Detection strategy. It consists of the ```UCBForcedExploreModule``` and the ```BOCDModule```.
 - ```discountedMO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```DiscountModule```.
 - ```GLR_klUCB```: A simplified version of the GLR_klUCB strategy. It consists of the ```UCBForcedExploreModule``` and the ```GLRModule```.
