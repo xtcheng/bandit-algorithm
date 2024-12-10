@@ -11,7 +11,7 @@ class ExpertsMultiObjective(BasicMultiObjective):
 	def __init__(self,T,num_arm, num_objectives, gini_weights):
 		self.historyContainer = HistoryContainerMO(num_arm, num_objectives)
 		self.experts = []
-		self.num_experts = round(1/2 * math.floor(math.log2(math.sqrt(2)*T + 1) ) + 1) # or should I include the 1/2 in the floor to avoid the rounding?
+		self.num_experts = round(1/2 * math.ceil(math.log2(2*T + 1) ) + 1) # or should I include the 1/2 in the floor to avoid the rounding?
 		print("Using", self.num_experts, "experts.")
 		for q in range(self.num_experts):
 			learning_factor = 2**q

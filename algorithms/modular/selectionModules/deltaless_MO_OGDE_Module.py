@@ -14,4 +14,4 @@ class Deltaless_MO_OGDE_Module(MO_OGDE_Module):
 		self.fullReset()
 	
 	def getLearningRate(self):
-		return (math.sqrt(1/self.num_arm + self.num_objectives**2) / math.sqrt(self.history.current_turn))
+		return (math.sqrt(2/self.num_arm + 2*self.num_objectives**2) / math.sqrt(self.history.current_turn))
