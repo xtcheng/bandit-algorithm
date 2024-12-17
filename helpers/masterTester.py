@@ -4,6 +4,7 @@ import numpy as np
 import math
 import multiprocessing
 from copy import deepcopy
+import os
 
 def evaluate(samples):
 	temp_sum = 0
@@ -18,17 +19,62 @@ def evaluate(samples):
 	return avg, var
 
 def makeInterval(average, variance):
-	average = np.array(average)
-	variance = np.array(variance)
+	if type(average) == list:
+		average = np.array(average)
+	if type(variance) == list:
+		variance = np.array(variance)
 	return average-variance, average+variance
 
-def plotOnce(env_names, algorithm_names, samples, samples_var, label, logscale):
-	plt.figure(figsize=(6, 5))
+
+def readOneResult(filename):
+	global results
+	if not "results" in globals():
+		results = dict()
+	label, what = filename.split(".")[:2]
+	if "/" in label:
+		label = label.split("/")[-1]
+	if not label in results:
+		results[label] = dict()
+	data = np.loadtxt(filename, delimiter=',')
+	if type(data[0]) == np.ndarray:
+		results[label][what] = data
+	else:
+		print("Warning:", filename, "seems to include no information on the standard deviation. Will plot without it.")
+		results[label][what] = [data, [0]*len(data)]
+
+
+# Read in the results in the standard resultfolder (or any other folder that contains results). This will prepare all the data there for plotting, so you do not need to re-run strategies that did not change to compare them against ones that did. Just make sure the folder does not contain outdated files from previous experiments, because it will to include ALL files that are in the folder.
+def readAllResults(path=0):
+	global resultpath
+	if path == 0:
+		if not "resultpath" in globals():
+			resultpath = "results/"
+		path = resultpath
+	for filename in os.listdir(path):
+		if len(filename) >= 4 and filename[-4:] == ".csv":
+			readOneResult(path + filename)
+
+def writeBatch(env_names, algorithm_names, samples, samples_var, label):
+	global resultpath
+	if not "resultpath" in globals():
+		resultpath = "results/"
+	os.makedirs(resultpath, exist_ok=True)
 	for j, env in enumerate(env_names):
 		for i, algorithm in enumerate(algorithm_names):
-			plt.plot(range(len(samples[0])), samples[len(algorithm_names)*j + i], label=algorithm_names[i]+" on "+env_names[j])
-			var_low, var_up = makeInterval(samples[len(algorithm_names)*j + i], samples_var[len(algorithm_names)*j + i])
-			plt.fill_between(range(len(samples[0])), var_low, var_up, color="xkcd:light grey")
+			filename = label + "."
+			data = (samples[len(algorithm_names)*j + i], samples_var[len(algorithm_names)*j + i])
+			filename += algorithm_names[i]+" on "+env_names[j] + ".csv"
+			np.savetxt(resultpath + filename, data, delimiter=',')
+
+
+def plotOnce(data, label, logscale):
+	plt.figure(figsize=(6, 5))
+	for what in data:
+		samples = data[what][0]
+		samples_var = data[what][1]
+		plt.plot(range(len(samples)), samples, label=what)
+		var_low, var_up = makeInterval(samples, samples_var)
+		plt.fill_between(range(len(samples)), var_low, var_up, color="xkcd:light grey")
 		
 	plt.xlabel('t (Trials)', fontsize=15)
 	plt.ylabel(label, fontsize=15)
@@ -37,6 +83,12 @@ def plotOnce(env_names, algorithm_names, samples, samples_var, label, logscale):
 	if logscale:
 		plt.xscale('log')
 
+
+def plotResults(logscale=False):
+	global results
+	for label in results:
+		plotOnce(results[label], label, logscale)
+	plt.show()
 
 def refine(samples, timesteps, rpts):
 	ret = [0]*timesteps
@@ -61,8 +113,31 @@ def run(algorithm, env, raw_cum, raw_avg, raw_eff, todo):
 		if hasattr(env, "clear"):
 			env.clear()
 
+def purgeResults():
+	global resultpath
+	if not "resultpath" in globals():
+		resultpath = "results/"
+	try:
+		filenames = os.listdir(resultpath)
+	except:
+		print(resultpath, "is not available, so there are no files to purge.")
+		return
+	for filename in filenames:
+		if len(filename) >= 4 and filename[-4:] == ".csv":
+			os.remove(resultpath + filename)
+	print(resultpath, "has been purged.")
+	
 
-def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
+
+def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, purge_old_results=True):
+	if purge_old_results:
+		purgeResults()
+	testOnly(T, rpts, envs, algorithms, algorithm_names, env_names)
+	readAllResults()
+	plotResults(logscale)
+
+
+def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 
 	avg_regret = []
 	avg_regret_var = []
@@ -136,9 +211,8 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False):
 	#for i in range(len(algorithms)):
 		#print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (rpts*len(envs)))+" seconds.")
 	
-	plotOnce(env_names, algorithm_names, cum_regret, cum_regret_var, "Cumulative Regret", logscale)
-	if has_eff:
-		plotOnce(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret", logscale)
-	plotOnce(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret", logscale)
 	
-	plt.show()
+	writeBatch(env_names, algorithm_names, cum_regret, cum_regret_var, "Cumulative Regret")
+	if has_eff:
+		writeBatch(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret")
+	writeBatch(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret")

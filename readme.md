@@ -30,7 +30,14 @@ Now to explain what the scripts in which folder are good for and what the indivi
 As stated before, these scripts serve as the point of entry. Therefore, there are no strict requirements for how they should like. What we usually do is:
 - Initiate one or more environments from ```environments/```
 - Initiate one or more strategies from ```algorithms/```
-- Pass these to the ```test```-function from ```helpers/masterTester```. This will run every strategy against every environment and plot the regret.
+- Pass these to the ```test```-function from ```helpers/masterTester```. This will run every strategy against every environment, using the funcion ```testOnly```, and plot the regret. Set the parameter ```purge_existing_results``` to ```False``` if you want to include the results from existing csv-files.
+- Alternatively, you can call ```testOnly``` directly. This will only run the tests and write the results to cvs-files without plotting them.
+- For plotting results from files, call ```readOneResult``` on every file you want to include. For convenience, you will usually want to use ```readAllResults``` to include all csv-files. Then call ```plotResults``` _once_.
+	- The files to not need to be from the same call of ```testOnly```. For example, you might have called ```testOnly``` on some combinations of strategies and environments, but forgotten some. Then you can just call ```testOnly``` on these new ones only and plot all together with ```readAllResults``` and ```plotResults```.
+- For every strategy x environment x regretDefinition, one file will be created that includes 2 vectors of vectors: One for the average and one for the standard deviation. This information will go into the filename and is later extracted by ```readOneResult```. In order to plot files from other implementations than this one, you currently have to rename your files accordingly.
+	- If the visualisation of the standard deviation of one curve is too thick and you want it gone, you can remove the second line of the corresponding file by hand without breaking anything.
+- The folder into which the files are written and from which they are read is defined by the global variable ```resultpath```. You may want to include the name of the test scenario and/or a timestamp in that path. If it is not set before first required, it will default to ```results/```.
+	- The folder will be created if it does not exist yet. If it does exist, existing files will not be purged before writing new ones, so make sure it does not contain things that mean something entirely different than what you currently testing.
 
 ### algorithms
 The strategies that can be used in the tests. Each is implemented as a class with at least the following properties:
