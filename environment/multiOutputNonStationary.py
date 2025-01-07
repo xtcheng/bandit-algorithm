@@ -34,6 +34,19 @@ class EnvMultiOutputNonStationary(EnvMultiOutput):
 	def getMu(self):
 		return self.mu[self.position]
 	
+	def getMeans(self, timesteps):
+		means = [None]*self.num_arm
+		for arm in range(self.num_arm):
+			means[arm] = [None]*self.d
+			for dimension in range(self.d):
+				means[arm][dimension] = [None]*timesteps
+				current_state = 0
+				for timestep in range(timesteps):
+					if timestep in self.breakpoints:
+						current_state += 1
+					means[arm][dimension][timestep] = self.mu[current_state][arm][dimension]
+		return means
+	
 	def clear(self):
 		self.position = 0
 		self.turns = 0

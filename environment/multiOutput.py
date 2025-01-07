@@ -30,5 +30,13 @@ class EnvMultiOutput:
 		#print(result)
 		#print("Optimal costs:", self.opt)
 	
+	def getMeans(self, timesteps):
+		means = [None]*self.num_arm
+		for arm in range(self.num_arm):
+			means[arm] = [None]*self.d
+			for dimension in range(self.d):
+				means[arm][dimension] = [self.mu[arm][dimension]]*timesteps
+		return means
+	
 	def getMu(self):
 		return self.mu

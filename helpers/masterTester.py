@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import time
 import numpy as np
 import math
@@ -66,6 +67,27 @@ def writeBatch(env_names, algorithm_names, samples, samples_var, label):
 			filename += algorithm_names[i]+" on "+env_names[j] + ".csv"
 			np.savetxt(resultpath + filename, data, delimiter=',')
 
+def plotMeans(means, title):
+	# means[arm][dimension][timestep]
+	colors =  list(mcolors.TABLEAU_COLORS.items())
+	T = range(len(means[0][0]))
+
+	fig, axs = plt.subplots(2, sharex=True, squeeze=True)
+	
+	for j in range(len(means[0])):
+		for i in range(len(means)):
+			label = "arm " + str(i+1)
+			axs[j].plot(T,means[i][j], c=colors[i][1],label=label)
+			axs[j].set_ylabel("dimension "+str(j+1), fontsize=7)
+			plt.subplots_adjust(hspace = 0.05 * 1 )
+	fig.suptitle(title, y=0.92)
+	lines_labels = [axs[0].get_legend_handles_labels()]
+	lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+	fig.subplots_adjust(bottom=0.2)
+	plt.figlegend( lines, labels, loc = 'upper center', ncol=5, labelspacing=0.0 )
+	plt.xlabel("t (Trials)")
+	#plt.title(title)
+	#plt.show()
 
 def plotOnce(data, label, logscale):
 	plt.figure(figsize=(6, 5))
@@ -134,6 +156,12 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, 
 		purgeResults()
 	testOnly(T, rpts, envs, algorithms, algorithm_names, env_names)
 	readAllResults()
+	
+	# TODO: Handle this like the results (save and plot from file)
+	for i in range(len(envs)):
+		if hasattr(envs[i], "getMeans"):
+			plotMeans(envs[i].getMeans(T), "Means of " + env_names[i])
+	
 	plotResults(logscale)
 
 
