@@ -40,7 +40,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			for j in range(self.num_objectives):
 				gradient[i] += self.history.sorted_mu[i][j] * self.gini_weights[j]
 			# Weight by the probability of that arm being picked because we want to evaluate the gradient at the current position.
-			gradient[i] *= self.current_mix[i]
+			#gradient[i] *= self.current_mix[i]
 		#print(gradient)
 		
 		# Perform gradient decent.
@@ -50,6 +50,7 @@ class MO_OGDE_Module(AbstractSelectionModule):
 		
 		# Project back into the feasible set.
 		self.current_mix = self.change_A(self.current_mix, self.num_arm, self.history.current_turn)
+		#print(self.current_mix)
 	
 	def fullReset(self):
 		self.current_mix = np.array([1/self.num_arm]*self.num_arm)
