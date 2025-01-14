@@ -72,7 +72,7 @@ def plotMeans(means, title):
 	colors =  list(mcolors.TABLEAU_COLORS.items())
 	T = range(len(means[0][0]))
 
-	fig, axs = plt.subplots(2, sharex=True, squeeze=True)
+	fig, axs = plt.subplots(len(means[0]), sharex=True, squeeze=True)
 	
 	for j in range(len(means[0])):
 		for i in range(len(means)):
