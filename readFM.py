@@ -110,7 +110,7 @@ if __name__ == "__main__":
 	biggest_users = []
 	print("\nThe", k, "most active users:\n")
 	for i in range(min(k, len(user_ranking))):
-		biggest_users.append(heappop(user_ranking).name)
+		biggest_users.append(heappop(user_ranking))
 		print(biggest_users[-1])
 	
 	print("\n\nThe", k, "most popular tracks:\n")
@@ -130,6 +130,7 @@ if __name__ == "__main__":
 		print(heappop(track_ranking_time[2]))
 	
 	for user in biggest_users:
+		user = user.name # only need the name here.
 		print("\n\nThe", k, "most popular tracks of "+user+":\n")
 		for i in range(min(k, len(track_ranking_user[user]))):
 			print(heappop(track_ranking_user[user]))
