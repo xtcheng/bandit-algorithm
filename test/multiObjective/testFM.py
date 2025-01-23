@@ -5,6 +5,7 @@ import helpers.masterTester as tester
 
 from environment.Gaussian_noise import Gaussian_noise as gn
 from environment.multiOutput import EnvMultiOutput
+from environment.multiOutputBernulli import EnvMultiOutputBernulli
 from algorithms.modular.moduleUsers.basicMultiObjective import BasicMultiObjective
 from algorithms.modular.moduleUsers.paretoUCB import ParetoUCB
 
@@ -36,6 +37,7 @@ if __name__ == "__main__":
 	noise = gn(1,0,0.01,[-0.2,0.2])
 	envs = list()
 	envs.append(EnvMultiOutput(num_arm, mu, noise, weights))
+	envs.append(EnvMultiOutputBernulli(num_arm, mu, weights))
 
 	delta = 0.05
 	algorithms = list()
@@ -47,6 +49,6 @@ if __name__ == "__main__":
 	algorithm_names.append("MO_OGDE")
 	env_names = []
 	env_names.append("transparent_env")
-	#env_names.append("bernulli_env")
+	env_names.append("bernulli_env")
 
 	tester.test(T, trial, envs, algorithms, algorithm_names, env_names)
