@@ -1,4 +1,5 @@
 from heapq import *
+import numpy as np
 
 class Tuple:
 	def __init__(self, name, count):
@@ -24,7 +25,8 @@ def dict2heap(d):
 
 
 if __name__ == "__main__":
-	k = 10
+	k_tracks = 10 # how many of the n tracks to consider
+	k_users = 10 # how many of the n users to consider
 	
 	mapping = dict() # which meaning is at which position
 	
@@ -33,6 +35,7 @@ if __name__ == "__main__":
 	track_counter = dict()
 	track_counter_user = dict()
 	track_counter_time = (dict(), dict(), dict())
+	total_calls = 0
 	
 	print("Parsing file...")
 	with open("Last.fm_data.csv", "r", encoding="utf-8") as file:
@@ -96,6 +99,8 @@ if __name__ == "__main__":
 			if not track in track_counter_user[username]:
 				track_counter_user[username][track] = 0
 			track_counter_user[username][track] += 1
+			
+			total_calls += 1
 	print("Reading complete.")
 	
 	# We want to find the k largest of n unsorted elements, where k << n (at least for the tracks).
@@ -108,29 +113,51 @@ if __name__ == "__main__":
 		track_ranking_user[user] = dict2heap(track_counter_user[user])
 	
 	biggest_users = []
-	print("\nThe", k, "most active users:\n")
-	for i in range(min(k, len(user_ranking))):
+	print("\nThe", k_users, "most active users:\n")
+	for i in range(min(k_users, len(user_ranking))):
 		biggest_users.append(heappop(user_ranking))
 		print(biggest_users[-1])
 	
-	print("\n\nThe", k, "most popular tracks:\n")
-	for i in range(min(k, len(track_ranking))):
-		print(heappop(track_ranking))
+	popular_tracks = []
+	# We will only consider these tracks.
+	print("\n\nThe", k_tracks, "most popular tracks:\n")
+	for i in range(min(k_tracks, len(track_ranking))):
+		popular_tracks.append(heappop(track_ranking))
+		print(popular_tracks[-1])
 	
-	print("\n\nThe", k, "most popular tracks at day:\n")
-	for i in range(min(k, len(track_ranking_time[0]))):
+	print("\n\nThe", k_tracks, "most popular tracks at day:\n")
+	for i in range(min(k_tracks, len(track_ranking_time[0]))):
 		print(heappop(track_ranking_time[0]))
 	
-	print("\n\nThe", k, "most popular tracks at evening:\n")
-	for i in range(min(k, len(track_ranking_time[1]))):
+	print("\n\nThe", k_tracks, "most popular tracks at evening:\n")
+	for i in range(min(k_tracks, len(track_ranking_time[1]))):
 		print(heappop(track_ranking_time[1]))
 	
-	print("\n\nThe", k, "most popular tracks at night:\n")
-	for i in range(min(k, len(track_ranking_time[2]))):
+	print("\n\nThe", k_tracks, "most popular tracks at night:\n")
+	for i in range(min(k_tracks, len(track_ranking_time[2]))):
 		print(heappop(track_ranking_time[2]))
 	
 	for user in biggest_users:
 		user = user.name # only need the name here.
-		print("\n\nThe", k, "most popular tracks of "+user+":\n")
-		for i in range(min(k, len(track_ranking_user[user]))):
+		print("\n\nThe", k_tracks, "most popular tracks of "+user+":\n")
+		for i in range(min(k_tracks, len(track_ranking_user[user]))):
 			print(heappop(track_ranking_user[user]))
+	
+	mu = np.zeros((len(popular_tracks), len(biggest_users)))
+	# a track is an arm and the arm's dimensions are how much each user likes it.
+	armstr = ""
+	dimstr = ""
+	for i_track, track in enumerate(popular_tracks):
+		armstr += track.name + ", "
+		for i_user, user in enumerate(biggest_users):
+			if i_track == 0:
+				dimstr += user.name + ", "
+			if track.name in track_counter_user[user.name]:
+				# if the user has listened to this track at least once, define their response for this track by the share this track had in the user's total history, including(!) tracks that are not overally popular. You might instead only want to consider popular tracks that the user has listened to, which will usually lead to a higher fraction and make each given dimension among all arms sum up to ~1.
+				rating = track_counter_user[user.name][track.name] / user_counter[user.name]
+			else:
+				# If there is no data for this track and user, make something up. Will use the overal popularity of the track among all users here. Alternatives would be to pick a random number from some interval or use 0.
+				rating = track_counter[track.name] / total_calls
+			# Turn rating (which is always between 0 and 1) into costs
+			mu[i_track][i_user] = 1 - rating
+	np.savetxt("fm_banditified.csv", mu, delimiter=',', header="Arms(tracks): ["+armstr[:-2]+"]\ndimensions(users): ["+dimstr[:-2]+"]", encoding="utf-8")
