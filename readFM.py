@@ -38,69 +38,50 @@ if __name__ == "__main__":
 	total_calls = 0
 	
 	print("Parsing file...")
+	
 	with open("Last.fm_data.csv", "r", encoding="utf-8") as file:
-		
 		line0 = file.readline().split(',')
 		for i in range(len(line0)):
 			mapping[line0[i].strip()] = i
+	
+	# Avoid messing with the details and let numpy figure out the rest. Not trivial because ',' is used to seperate items and '"' to delimit some, but both may be part of the items as well!
+	data = np.loadtxt("Last.fm_data.csv", encoding="utf-8", delimiter=',', skiprows=1, dtype=str, quotechar='"', comments=None)
+	for elements in data:
+		# Tricky part done, check if the interpretation looks sane.
+		if len(elements) != len(mapping):
+			print(elements, "is broken, has", len(elements), "entries instead of", len(mapping))
+			print(line)
+			continue
 		
-		for line in file:
-			# parse line and clean up
-			proto_elements = line.strip().split(',')
-			elements = []
-			pending = "" # The elements that wait for merge because they actually belong to the same column
-			# The tricky part: Because the data uses ',' to seperate the columns and ',' shows up as part of some titles, these titles are protected with '"'. But this can also be part of the title, and English opening and closing '"' are identical...
-			for element in proto_elements:
-				if element[0] != '\"' and element[-1] != '\"':
-					if pending == "":
-						elements.append(element)
-					else:
-						pending += element
-				elif element[-1] == '\"':
-					# So it ends with '"', but can we really close it or is this part of the name?
-					if (pending.count('\"') + element.count('\"')) % 2 == 0:
-						elements.append((pending + element)[1:-1])
-						pending = ""
-					else:
-						pending += element
-				else:
-					pending += element
-			
-			# Tricky part done, check if the interpretation looks sane.
-			if len(elements) != len(mapping):
-				print(elements, "is broken, has", len(elements), "entries instead of", len(mapping))
-				print(line)
-				continue
-			
-			username = elements[mapping["Username"]]
-			if not username in user_counter:
-				user_counter[username] = 0
-				track_counter_user[username] = dict() # then it's not there yet either.
-			user_counter[username] += 1
-			
-			track = elements[mapping["Track"]]
-			if not track in track_counter:
-				track_counter[track] = 0
-			track_counter[track] += 1
-			
-			time = elements[mapping["Time"]]
-			hour = int(time.split(':')[0])
-			# day, evening, night.
-			if hour >= 6 and hour < 18:
-				dayphase = 0
-			elif hour >= 18 and hour < 22:
-				dayphase = 1
-			else:
-				dayphase = 2
-			if not track in track_counter_time[dayphase]:
-				track_counter_time[dayphase][track] = 0
-			track_counter_time[dayphase][track] += 1
-			
-			if not track in track_counter_user[username]:
-				track_counter_user[username][track] = 0
-			track_counter_user[username][track] += 1
-			
-			total_calls += 1
+		username = elements[mapping["Username"]]
+		if not username in user_counter:
+			user_counter[username] = 0
+			track_counter_user[username] = dict() # then it's not there yet either.
+		user_counter[username] += 1
+		
+		track = elements[mapping["Track"]]
+		if not track in track_counter:
+			track_counter[track] = 0
+		track_counter[track] += 1
+		
+		time = elements[mapping["Time"]]
+		hour = int(time.split(':')[0])
+		# day, evening, night.
+		if hour >= 6 and hour < 18:
+			dayphase = 0
+		elif hour >= 18 and hour < 22:
+			dayphase = 1
+		else:
+			dayphase = 2
+		if not track in track_counter_time[dayphase]:
+			track_counter_time[dayphase][track] = 0
+		track_counter_time[dayphase][track] += 1
+		
+		if not track in track_counter_user[username]:
+			track_counter_user[username][track] = 0
+		track_counter_user[username][track] += 1
+		
+		total_calls += 1
 	print("Reading complete.")
 	
 	# We want to find the k largest of n unsorted elements, where k << n (at least for the tracks).
