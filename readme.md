@@ -30,7 +30,14 @@ Now to explain what the scripts in which folder are good for and what the indivi
 As stated before, these scripts serve as the point of entry. Therefore, there are no strict requirements for how they should like. What we usually do is:
 - Initiate one or more environments from ```environments/```
 - Initiate one or more strategies from ```algorithms/```
-- Pass these to the ```test```-function from ```helpers/masterTester```. This will run every strategy against every environment and plot the regret.
+- Pass these to the ```test```-function from ```helpers/masterTester```. This will run every strategy against every environment, using the funcion ```testOnly```, and plot the regret. Set the parameter ```purge_existing_results``` to ```False``` if you want to include the results from existing csv-files.
+- Alternatively, you can call ```testOnly``` directly. This will only run the tests and write the results to cvs-files without plotting them.
+- For plotting results from files, call ```readOneResult``` on every file you want to include. For convenience, you will usually want to use ```readAllResults``` to include all csv-files. Then call ```plotResults``` _once_.
+	- The files to not need to be from the same call of ```testOnly```. For example, you might have called ```testOnly``` on some combinations of strategies and environments, but forgotten some. Then you can just call ```testOnly``` on these new ones only and plot all together with ```readAllResults``` and ```plotResults```.
+- For every strategy x environment x regretDefinition, one file will be created that includes 2 vectors of vectors: One for the average and one for the standard deviation. This information will go into the filename and is later extracted by ```readOneResult```. In order to plot files from other implementations than this one, you currently have to rename your files accordingly.
+	- If the visualisation of the standard deviation of one curve is too thick and you want it gone, you can remove the second line of the corresponding file by hand without breaking anything.
+- The folder into which the files are written and from which they are read is defined by the global variable ```resultpath```. You may want to include the name of the test scenario and/or a timestamp in that path. If it is not set before first required, it will default to ```results/```.
+	- The folder will be created if it does not exist yet. If it does exist, existing files will not be purged before writing new ones, so make sure it does not contain things that mean something entirely different than what you currently testing.
 
 ### algorithms
 The strategies that can be used in the tests. Each is implemented as a class with at least the following properties:
@@ -58,8 +65,10 @@ All selection modules provide the following interfaces:
 
 And these are the currently available modules:
 - ```AbstractSelectionModule```: Serves as a superclass to most of the selection modules. This avoids redundancy as the using modules are mostly identical except for the actions in the constructor and in ```suggestArm```.
-- ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
-- ```UCBModule```: The core logic of the original UCB strategy. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
+- ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy, see Busa-Fekete et al. (2017): "Multi-objective Bandits: Optimizing the Generalized Gini Index". It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
+- ```Deltaless_MO_OGDE_Module```: A variant of the ```MO_OGDE_Module``` with a simplified version of learning rate calculation that uses no delta (which in the original version was the probability that certain features cannot be guaranteed to hold).
+- ```PL_MO_OGDE_Module```: A variant of the ```Deltaless_MO_OGDE_Module``` that includes a modifier for the learning rate. Intended for expert strategies.
+- ```UCBModule```: The core logic of the original UCB strategy, see Auer et al. (2002): "Finite-time Analysis of the Multi-armed Bandit Problem", Machine Learning, 47, pp. 235–256. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
 - ```UCBForcedExploreModule```: Like UCB, but with forced exploration. The fraction of exploration to be equally distributed across all arms is dictated by a new argument.
 
 #### modular/adaptionModules
@@ -74,12 +83,12 @@ All adaption modules provide the following interfaces:
 - ```fullReset(self):``` Resets the module to its original state.
 
 These are the adaption modules:
-- ```BOCDModule```: The breakpoint adaption logic from the original Bayesian Online Change-point Detection strategy. It calculates its parameters from the number of planned timesteps. It resets an arm in the selection module whenever it believes there has been a breakpoint in that arm.
-- ```DiscountModule```: The breakpoint adaption logic from the original Discounted UCB strategy. It requires a discount factor that is multiplied onto the history of the selection module in each timestep.
-- ```GLRModule```: The breakpoint adaption logic from the original GLR-klUCB strategy. It requires a hyper parameter, will reset either one arm or everything when detecting a breakpoint (given by the next argument) and the last argument how many timesteps shall be skipped before running its very costly breakpoint detection again.
-- ```MonitorModule```: The breakpoint adaption logic from the original Monitored UCB strategy. It requires a window length which to use for the comparision of more and less recent breakpoint detection and a detection threshold. It will reset everything upon encountering a breakpoint.
+- ```BOCDModule```: The breakpoint adaption logic from the original Bayesian Online Change-point Detection strategy, see Alami et al. (2020): "Restarted Bayesian Online Change-point Detector achieves Optimal Detection Delay". It calculates its parameters from the number of planned timesteps. It resets an arm in the selection module whenever it believes there has been a breakpoint in that arm.
+- ```DiscountModule```: The breakpoint adaption logic from the original Discounted UCB strategy, see Garivier et al. (2008): "On Upper-Confidence Bound Policies for Non-Stationary Bandit Problems". It requires a discount factor that is multiplied onto the history of the selection module in each timestep.
+- ```GLRModule```: The breakpoint adaption logic from the original GLR-klUCB strategy, see Besson et al. (2022): "Efficient Change-Point Detection for Tackling Piecewise-Stationary Bandits". It requires a hyper parameter, will reset either one arm or everything when detecting a breakpoint (given by the next argument) and the last argument how many timesteps shall be skipped before running its very costly breakpoint detection again.
+- ```MonitorModule```: The breakpoint adaption logic from the original Monitored UCB strategy, see Cao et al. (2019): "Nearly Optimal Adaptive Procedure with Change Detection for Piecewise-Stationary Bandit". It requires a window length which to use for the comparision of more and less recent breakpoint detection and a detection threshold. It will reset everything upon encountering a breakpoint.
 - ```NullAdaptionModule```: A module that does nothing. It serves as a stand-in for places that expect any adaption module to exist, but no breakpoint adaption shall be performed because we only want to use the selection module.
-- ```SlidingWindowModule```: The breakpoint adaption logic from the original Sliding Window UCB strategy. It requires a window length and will remove the impact of any feedback that is older than that from the selection module.
+- ```SlidingWindowModule```: The breakpoint adaption logic from the original Sliding Window UCB strategy, see Garivier et al. (2008): "On Upper-Confidence Bound Policies for Non-Stationary Bandit Problems". It requires a window length and will remove the impact of any feedback that is older than that from the selection module.
 
 #### modular/moduleUsers
 Scripts that combine selection and adaption modules to form actual strategies that satisfy the requirements listed under **algorithms**.
@@ -92,6 +101,8 @@ They each will execute all timesteps in a loop. The following happens once per l
 The module using scripts include:
 - ```AbstractMAB```: Servers as the superclass to most modular strategies. These strategies differ only in what modules they use and the rest is identical, so all the code that would otherwise be copy-pasted is in ```AbstractMAB``` instead.
 - ```BasicMultiObjective```: The original Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It consists of the ```MO_OGDE_Module``` and the ```NullAdaptionModule```.
+- ```DeltalessMultiObjective```: A simplified version of ```BasicMultiObjective``` that uses the ```Deltaless_MO_OGDE_Module``` instead of the ```MO_OGDE_Module```.
+- ```exptertsMultiObjective```: Meta-learning version of ```BasicMultiObjective```. It uses multiple instances of the ```PL_MO_OGDE_Module``` and tries to listen to the best expert most.
 - ```BOCD```: The original Bayesian Online Change-point Detection strategy. It consists of the ```UCBForcedExploreModule``` and the ```BOCDModule```.
 - ```discountedMO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```DiscountModule```.
 - ```GLR_klUCB```: A simplified version of the GLR_klUCB strategy. It consists of the ```UCBForcedExploreModule``` and the ```GLRModule```.
