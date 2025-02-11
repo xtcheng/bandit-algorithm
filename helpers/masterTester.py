@@ -28,11 +28,18 @@ def makeInterval(average, variance):
 
 def compressSamples(samples, errors):
 	global ERRORBAR_COUNT
-	compressed_range = [0]*ERRORBAR_COUNT
-	compressed_samples = [0]*ERRORBAR_COUNT
-	compressed_errors = [0]*ERRORBAR_COUNT
-	stepsize = (len(samples)-1) / (ERRORBAR_COUNT-1) # minus one because our last sample is at len-1; again because we can have one more bar than steps
-	for i in range(ERRORBAR_COUNT):
+	assert ERRORBAR_COUNT >= 0
+	if ERRORBAR_COUNT == 0:
+		return None, None, None
+	if ERRORBAR_COUNT == 1:
+		pos = round(len(samples) / 2)
+		return [pos], [samples[pos]], [errors[pos]]
+	n = min(ERRORBAR_COUNT, len(samples))
+	compressed_range = [0]*n
+	compressed_samples = [0]*n
+	compressed_errors = [0]*n
+	stepsize = (len(samples)-1) / (n-1) # minus one because our last sample is at len-1; again because we can have one more bar than steps
+	for i in range(n):
 		pos = round(stepsize*i)
 		compressed_range[i] = pos
 		compressed_samples[i] = samples[pos]
