@@ -26,6 +26,18 @@ def makeInterval(average, variance):
 		variance = np.array(variance)
 	return average-variance, average+variance
 
+def compressSamples(samples, errors):
+	global ERRORBAR_COUNT
+	compressed_range = [0]*ERRORBAR_COUNT
+	compressed_samples = [0]*ERRORBAR_COUNT
+	compressed_errors = [0]*ERRORBAR_COUNT
+	stepsize = (len(samples)-1) / (ERRORBAR_COUNT-1) # minus one because our last sample is at len-1; again because we can have one more bar than steps
+	for i in range(ERRORBAR_COUNT):
+		pos = round(stepsize*i)
+		compressed_range[i] = pos
+		compressed_samples[i] = samples[pos]
+		compressed_errors[i] = errors[pos]
+	return compressed_range, compressed_samples, compressed_errors
 
 def readOneResult(filename):
 	global results
@@ -90,13 +102,17 @@ def plotMeans(means, title):
 	#plt.show()
 
 def plotOnce(data, label, logscale):
+	colors = iter(plt.cm.jet(np.linspace(0, 1, len(data))))
 	plt.figure(figsize=(6, 5))
 	for what in data:
+		color = next(colors)
 		samples = data[what][0]
 		samples_var = data[what][1]
-		plt.plot(range(len(samples)), samples, label=what)
-		var_low, var_up = makeInterval(samples, samples_var)
-		plt.fill_between(range(len(samples)), var_low, var_up, color="xkcd:light grey")
+		plt.plot(range(len(samples)), samples, label=what, color=color)
+		#var_low, var_up = makeInterval(samples, samples_var)
+		#plt.fill_between(range(len(samples)), var_low, var_up, color="xkcd:light grey")
+		compressed_range, compressed_samples, compressed_errors = compressSamples(samples, samples_var)
+		plt.errorbar(compressed_range, compressed_samples, yerr=compressed_errors, color=color, fmt="none")
 		
 	plt.xlabel('t (Trials)', fontsize=15)
 	plt.ylabel(label, fontsize=15)
@@ -107,6 +123,9 @@ def plotOnce(data, label, logscale):
 
 
 def plotResults(logscale=False):
+	global ERRORBAR_COUNT
+	if not "ERRORBAR_COUNT" in globals():
+		ERRORBAR_COUNT = 40
 	global results
 	for label in results:
 		plotOnce(results[label], label, logscale)
@@ -123,7 +142,7 @@ def refine(samples, timesteps, rpts):
 			ret[i].append(float(one_series[i])) # cast to float to ensure it is not some weird numpy object that would cause trouble in the plotting.
 	return ret
 
-def run(algorithm, env, raw_cum, raw_avg, raw_eff, time_passed, todo):
+def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, time_passed, todo):
 	for x in range(todo):
 		start_time = time.perf_counter()
 		algorithm.run(env)
@@ -132,6 +151,8 @@ def run(algorithm, env, raw_cum, raw_avg, raw_eff, time_passed, todo):
 		raw_avg.put(algorithm.get_avg_rgt())
 		if hasattr(algorithm, "get_eff_rgt"):
 			raw_eff.put(algorithm.get_eff_rgt())
+		if hasattr(algorithm, "get_pto_rgt"):
+			raw_pto.put(algorithm.get_pto_rgt())
 		time_passed.put(end_time - start_time)
 		
 		algorithm.clear()
@@ -176,7 +197,10 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 	cum_regret_var = []
 	eff_regret = []
 	eff_regret_var = []
+	pto_regret = []
+	pto_regret_var = []
 	has_eff = False
+	has_pto = False
 	sum_times = [0]*len(algorithms)
 	
 	AVAILABLE_CORES = 8 # How many subprocesses will be spawned at maximum. This number should not exceed the number of physical cores available on your system to avoid diminishing returns and crashes! If less repetitions are wanted, only that much processes will be spawned. If more repetitions are wanted, they will be equally distributed among the processes.
@@ -189,14 +213,17 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			raw_cum = multiprocessing.Queue()
 			raw_avg = multiprocessing.Queue()
 			raw_eff = multiprocessing.Queue()
+			raw_pto = multiprocessing.Queue()
 			time_passed = multiprocessing.Queue()
 			
 			cum_regret.append([0]*T)
 			avg_regret.append([0]*T)
 			eff_regret.append([0]*T)
+			pto_regret.append([0]*T)
 			cum_regret_var.append([0]*T)
 			avg_regret_var.append([0]*T)
 			eff_regret_var.append([0]*T)
+			pto_regret_var.append([0]*T)
 			processes = list()
 			assigned_rpts = 0
 			if rpts > AVAILABLE_CORES:
@@ -210,7 +237,7 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			for trial in range(required_processes):
 				# Do the multiprocessing in the repetitions and block until all are done. Assumption: Running a fixed strategy on a fixed environment always takes roughly the same amount of time, so the blocking is no real issue.
 				rpts_here = min(rpts_per_process, (rpts - assigned_rpts))
-				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, time_passed, rpts_here))
+				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, raw_pto, time_passed, rpts_here))
 				process.start()
 				print("Process spawned, performing", rpts_here, "repetitions.")
 				processes.append(process)
@@ -226,6 +253,9 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			if hasattr(algorithm, "get_eff_rgt"):
 				refined_eff = refine(raw_eff, T, rpts)
 				has_eff = True
+			if hasattr(algorithm, "get_pto_rgt"):
+				refined_pto = refine(raw_pto, T, rpts)
+				has_pto = True
 			
 			for x in range(rpts):
 				sum_times[i] += time_passed.get()
@@ -239,6 +269,8 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 				avg_regret[-1][y], avg_regret_var[-1][y] = evaluate(refined_avg[y])
 				if hasattr(algorithm, "get_eff_rgt"):
 					eff_regret[-1][y], eff_regret_var[-1][y] = evaluate(refined_eff[y])
+				if hasattr(algorithm, "get_pto_rgt"):
+					pto_regret[-1][y], pto_regret_var[-1][y] = evaluate(refined_pto[y])
 	
 	for i in range(len(algorithms)):
 		print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (rpts*len(envs)))+" seconds.")
@@ -247,4 +279,6 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 	writeBatch(env_names, algorithm_names, cum_regret, cum_regret_var, "Cumulative Regret")
 	if has_eff:
 		writeBatch(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret")
+	if has_pto:
+		writeBatch(env_names, algorithm_names, pto_regret, pto_regret_var, "Average Pareto Regret")
 	writeBatch(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret")

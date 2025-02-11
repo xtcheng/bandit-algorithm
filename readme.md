@@ -2,10 +2,10 @@
 
 This project provides implementations of various Multi-Armed-Bandit related reinforcement learning algorithms from impactful papers, as well as original recombinations of them.
 They have been implemented such that they rely on common structures and common interfaces, allowing easy comparisons in any suited environment and easy extension of various aspects.
-Additionally, high big-O runtimes - as present in some pseudocodes intended for theoretical analysis of a strategy's _quality_ only - have been avoided where possible.
+Additionally, high big-O runtimes - as present in some pseudocodes intended for theoretical analysis of a strategy's _solution-quality_ only - have been avoided where possible.
 
 ## Requirements
-- Python 3.*
+- Python 3.8 or higher
 - requirements.txt
 	```bash
 	pip install -r requirements.txt
@@ -44,8 +44,12 @@ The strategies that can be used in the tests. Each is implemented as a class wit
 - ```__init__(self, T):``` The constructor. T is the number of timesteps that the strategy shall spend on every environment.
 - ```run(self,env):``` Makes the agent interact with environment env T times, usually learning according to the feedback while doing so. The environment must be suited for the strategy, e.g. a strategy for the standard MAB will not expect the environment to return a list of values as feedback.
 - ```get_avg_rgt(self):``` Returns the average regret for every previous timestep of the past run. ```masterTester``` will use this for the plots.
-- ```get_cum_rgt(self):``` The same as above, but for cumulative regret.
+- ```get_cum_rgt(self):``` The same as above, but for cumulative regret. Note that in multi-objective settings, both of them will be based on the instantanious regret intead of what was actually received.
 - ```clear(self):``` Resets the object to the state it was in at initialisation.
+
+The following are optional:
+- ```get_pto_rgt(self):``` Returns the average pareto regret. Only really makes sense in multi-objective settings.
+- ```get_eff_rgt(self):``` Returns the difference in score between the average of what has been achieved so far vs. the theoretical current best available score. Might be negative in certain cases. This intended for multi-objective settings because it takes into account what the strategy actually does.
 
 The algorithms are organized in subfolders:
 
@@ -57,7 +61,7 @@ Their main functionality is to be inquired about what action to take next and th
 Also note that the module never directly interacts with the environment.
 
 All selection modules provide the following interfaces:
-- ```__init__(self,T,num_arm):``` Sets up the module. What arguments are required depends on the module, but the planned runtime and the number of arms are always required unless noted otherwise, so only additional arguments, including hyper-parameters, will be mentioned.
+- ```__init__(self,T,num_arm):``` Sets up the module. What arguments are required depends on the module, but the planned runtime and the number of arms are always required unless noted otherwise, so only additional arguments, including hyper-parameters, will be mentioned. Selection modules that operate on multi-objective settings include the history container in which the history will be saved.
 - ```suggestArm(self):``` Evaluate the current knowledge according to whatever the underlying strategy is and return what action shall be taken.
 - ```thisHappened(self, arm, reward, timestep):``` The module acknowledges what action the agent has actually taken and what the feedback was. Note that this does not have to be the action that the module has suggested; this is useful for expert algorithms if you do not want/need to simulate a feedback that fits the proposal. The timestep is usually inferred by how many times the function has called, but it would be possible to use it.
 - ```fullReset(self):``` Fully resets the module to its starting state.
@@ -67,9 +71,10 @@ And these are the currently available modules:
 - ```AbstractSelectionModule```: Serves as a superclass to most of the selection modules. This avoids redundancy as the using modules are mostly identical except for the actions in the constructor and in ```suggestArm```.
 - ```MO_OGDE_Module```: The core logic of the Multi-Objective-Online-Gradient-Decent-with-exploration strategy, see Busa-Fekete et al. (2017): "Multi-objective Bandits: Optimizing the Generalized Gini Index". It requires the number of objectives (=the dimension of one feedback), a learning rate and the gini weights that are globally used to evaluate the costs.
 - ```Deltaless_MO_OGDE_Module```: A variant of the ```MO_OGDE_Module``` with a simplified version of learning rate calculation that uses no delta (which in the original version was the probability that certain features cannot be guaranteed to hold).
-- ```PL_MO_OGDE_Module```: A variant of the ```Deltaless_MO_OGDE_Module``` that includes a modifier for the learning rate. Intended for expert strategies.
+- ```PL_MO_OGDE_Module```: A variant of the ```Deltaless_MO_OGDE_Module``` that includes a modifier for the learning rate and drops the parameter used for the theoretical guarantees. Intended for expert strategies.
 - ```UCBModule```: The core logic of the original UCB strategy, see Auer et al. (2002): "Finite-time Analysis of the Multi-armed Bandit Problem", Machine Learning, 47, pp. 235–256. It requires a parameter that scales how important unexplored potential is. Note that this parameter is hardcoded to values such as 0.5 in some strategies based on UCB, which we did too for those strategies.
 - ```UCBForcedExploreModule```: Like UCB, but with forced exploration. The fraction of exploration to be equally distributed across all arms is dictated by a new argument.
+- ```Pareto_UCB_Module```: The core logic of the Pareto-UCB strategy, that uses a UCB-like estimation for the pareto front and chooses arms uniformly random from that, see Rezaei Balef and Maghsudi (2023): "Piecewise-Stationary Multi-Objective Multi-Armed Bandit With Application to Joint Communications and Sensing", IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 12, NO. 5.
 
 #### modular/adaptionModules
 These modules implement breakpoint adaption. Just like the selection modules, they are supposed to be informed about what happened at every timestep.
@@ -98,18 +103,32 @@ They each will execute all timesteps in a loop. The following happens once per l
 - Tell the modules about the feedback (but not about the optimal one)
 - Calculate regret
 
+Note that the multi-objective ones save their history in a ```HistoryContainerMO```. This is so that in expert algorithms, adaption modules can just interact with that constainer and the actions will be relayed to all the experts, and the strategy does not need to hold multiple copies of the same history.
+
 The module using scripts include:
 - ```AbstractMAB```: Servers as the superclass to most modular strategies. These strategies differ only in what modules they use and the rest is identical, so all the code that would otherwise be copy-pasted is in ```AbstractMAB``` instead.
 - ```BasicMultiObjective```: The original Multi-Objective-Online-Gradient-Decent-with-exploration strategy. It consists of the ```MO_OGDE_Module``` and the ```NullAdaptionModule```.
 - ```DeltalessMultiObjective```: A simplified version of ```BasicMultiObjective``` that uses the ```Deltaless_MO_OGDE_Module``` instead of the ```MO_OGDE_Module```.
 - ```exptertsMultiObjective```: Meta-learning version of ```BasicMultiObjective```. It uses multiple instances of the ```PL_MO_OGDE_Module``` and tries to listen to the best expert most.
 - ```BOCD```: The original Bayesian Online Change-point Detection strategy. It consists of the ```UCBForcedExploreModule``` and the ```BOCDModule```.
+- ```BOCD_MO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```BOCDModule```.
 - ```discountedMO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```DiscountModule```.
 - ```GLR_klUCB```: A simplified version of the GLR_klUCB strategy. It consists of the ```UCBForcedExploreModule``` and the ```GLRModule```.
+- ```GLR_MO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```GLRModule```.
 - ```MonitoredMO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```MonitorModule```.
 - ```MonitoredUCB```: The original monitored UCB strategy. It consists of the ```UCBForcedExploreModule``` and the ```MonitorModule```.
 - ```SlidingWindowMO```: A strategy that works for multi-objective settings that have breakpoints. It consists of the ```MO_OGDE_Module``` and the ```SlidingWindowModule```.
 - ```ModularUCB```: The original UCB strategy. It consists of the ```UCBModule``` and the ```NullAdaptionModule```.
+- ```ParetoUCB```: The original Pareto-UCB strategy. It consists of the ```Pareto_UCB_Module``` and the ```NullAdaptionModule```.
+- ```ExpertsMultiObjective```: An expert version of ```BasicMultiObjective```. It runs _multiple_ ```PL_MO_OGDE_Module``` initialised with different learning factors in parallel and learns which one makes the best choices. It includes the ```NullAdaptionModule```.
+- ```BOCD_ExpertsMultiObjective```: Like ```ExpertsMultiObjective```, but with the ```BOCDModule``` for breakpoint adaption.
+- ```DiscountedExpertsMultiObjective```: Like ```ExpertsMultiObjective```, but with the ```DiscountModule``` for breakpoint adaption.
+
+#### readFM.py
+This script will transform a file that includes the log of what music what user has listened to when, into a MO-MAB instance. It will first parse the file linewise and extract the important information. It will pool the times into time slots that have been arbitrarily decided on.
+After that, it will infer the most popular tracks and the most active users and, per timeslot, how popular which tracks were for these users.
+The resulting bandit problem will have the most popular tracks as arms and the most active users as objectives. Picking some arm is intended to simulate the responses of the different users. Some users can be expected to like certain tracks more than others and some tracks can be expected to be liked by some users more than by others. This is estimated based on the users' track call log.
+This can be interpreted as having to provide a mix of tracks that shall reach maximum overall satisfaction among all (most active) users as an online learning problem (even though the original data is offline).
 
 ### environments
 Environments are what the agents, or rather, the scripts that run the strategies, interact with. They each are initialized with arguments that control how exactly their feedback is generated.
@@ -124,6 +143,7 @@ The following environments are available:
 - ```env_non_stationary```: The default environment for MAB with breakpoints. Is is provided several sets of distributions for the arms and the timesteps (breakpoints) at which to change to the next set.
 - ```EnvParabola```: An environment for online convex optimization strategies. The underlying function is parabola-like and its parameters oscillate slightly after a couple of turns if set to do so. Depending on what the agent is allowed to do, it may return the current function.
 - ```EnvMultiOutput```: The default environment for multi-objective MAB, where feedback is multi-dimensional and the agent has to minimize the generalized gini index of the total feedback.
+- ```EnvMultiOutputBernoulli```: Like the above, but interprets the provided mu as probabilities and only returns 0 or 1.
 - ```EnvMultiOutputNonStationary```: Like ```EnvMultiOutput``` but supports breakpoints like in ```env_non_stationary```. This means that the optimal mix of actions will likely change at fixed timesteps, and this environment will recalculate it then.
 - ```EnvMultiOutputRandomized```: Like ```EnvMultiOutput``` but the noise and the expected costs per arm and dimension are uniform drawn randomly _on each reset_.
 

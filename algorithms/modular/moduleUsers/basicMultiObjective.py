@@ -24,14 +24,14 @@ class BasicMultiObjective(AbstractMAB):
 		self.historyContainer.thisHappened(arm, reward, t)
 		self.adaption_module.thisHappened(arm, reward, t)
 		self.current_mix = self.selection_module.current_mix
-		return reward, optimal_costs
+		return reward, optimal_costs, arm
 	
 	
 	# run needs to be redifined because of the reward being multi-dimensional and there is no optimal action, but an optimal mix.
 	def run(self,env):
 		total = 0 # Total costs
 		for t in range(0,self.T):
-			reward, optimal_costs = self.pullArm(t, env)
+			reward, optimal_costs, arm = self.pullArm(t, env)
 			
 			# For performance analysis
 			
@@ -51,9 +51,11 @@ class BasicMultiObjective(AbstractMAB):
 			
 			
 			self.sum_rgt += ins
+			self.sum_pto_rgt += env.getParetoRegret(arm)
 			self.avg_rgt[t] = self.sum_rgt / (t+1)
 			self.cum_rgt[t] = self.sum_rgt
 			self.eff_rgt[t] = gini_avg - optimal_costs
+			self.avg_pto_rgt[t] = self.sum_pto_rgt / (t+1)
 		self.epilogue()
 	
 	def epilogue(self):
@@ -66,9 +68,15 @@ class BasicMultiObjective(AbstractMAB):
 	def get_eff_rgt(self):
 		return self.eff_rgt
 	
+	def get_pto_rgt(self):
+		return self.avg_pto_rgt
+	
 	
 	def clear(self):
 		# Also set the effective regret because we have it.
+		# And Pareto regret.
 		self.eff_rgt = [0]*self.T
+		self.avg_pto_rgt = [0]*self.T
+		self.sum_pto_rgt = 0
 		self.historyContainer.fullReset()
 		super().clear()

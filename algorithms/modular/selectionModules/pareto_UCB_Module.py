@@ -22,6 +22,7 @@ class Pareto_UCB_Module(MO_OGDE_Module):
 				ucb[arm] = 0
 			else:
 				# We want to find arms with a small feedback, so substract the UCB-potential from the average instead of adding it. A high potential means the current exploration of the arm is poor and the costs might be lower (instead of higher!) than the average suggests.
+				# Of course, it might as well be higher, but when selecting arms, we are only interested in the "it might be better than we think" part of "it might be different than we think".
 				ucb[arm] = self.history.mu[arm] - np.sqrt(self.alpha*np.log(self.history.current_turn * (self.num_objectives * self.num_arm )**0.25 )) / self.history.num_play[arm]
 		
 		# calculate the pareto front

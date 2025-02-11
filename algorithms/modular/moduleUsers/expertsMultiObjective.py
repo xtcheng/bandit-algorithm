@@ -60,7 +60,7 @@ class ExpertsMultiObjective(BasicMultiObjective):
 			for i in range(self.num_experts):
 				self.expert_weights[i] = losses[i] / loss_sum
 		self.adaption_module.thisHappened(arm, reward, t)
-		return reward, optimal_costs
+		return reward, optimal_costs, arm
 	
 	
 	def epilogue(self):
@@ -80,6 +80,8 @@ class ExpertsMultiObjective(BasicMultiObjective):
 		self.sum_rgt = 0
 		self.avg_rgt = [0]*self.T
 		self.cum_rgt = [0]*self.T
+		self.avg_pto_rgt = [0]*self.T
+		self.sum_pto_rgt = 0
 		
 		self.historyContainer.fullReset()
 		self.adaption_module.fullReset()
