@@ -28,13 +28,15 @@ def makeInterval(average, variance):
 
 def compressSamples(samples, errors):
 	global ERRORBAR_COUNT
-	assert ERRORBAR_COUNT >= 0
 	if ERRORBAR_COUNT == 0:
 		return None, None, None
 	if ERRORBAR_COUNT == 1:
 		pos = round(len(samples) / 2)
 		return [pos], [samples[pos]], [errors[pos]]
-	n = min(ERRORBAR_COUNT, len(samples))
+	if ERRORBAR_COUNT < 0:
+		n = len(samples)
+	else:
+		n = min(ERRORBAR_COUNT, len(samples))
 	compressed_range = [0]*n
 	compressed_samples = [0]*n
 	compressed_errors = [0]*n
