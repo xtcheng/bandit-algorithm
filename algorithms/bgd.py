@@ -23,6 +23,8 @@ class BGD:
 	
 		# Init:
 		
+		env.refresh()
+		
 		# The boundaries and the variables will never change.
 		bounds = env.getSpace()
 		d = len(bounds)

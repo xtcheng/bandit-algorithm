@@ -11,6 +11,8 @@ class GreedyProjection:
 	
 		# Init:
 		
+		env.refresh()
+		
 		# The boundaries and the variables will never change.
 		bounds = env.getSpace()
 		variables = env.getVariables()

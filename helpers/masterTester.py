@@ -151,7 +151,7 @@ def refine(samples, timesteps, rpts):
 			ret[i].append(float(one_series[i])) # cast to float to ensure it is not some weird numpy object that would cause trouble in the plotting.
 	return ret
 
-def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, time_passed, todo):
+def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, todo):
 	for x in range(todo):
 		start_time = time.perf_counter()
 		algorithm.run(env)
@@ -162,6 +162,9 @@ def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, time_passed, todo):
 			raw_eff.put(algorithm.get_eff_rgt())
 		if hasattr(algorithm, "get_pto_rgt"):
 			raw_pto.put(algorithm.get_pto_rgt())
+		for name in metric_names:
+			if hasattr(algorithm, "listMetrics") and name in algorithm.listMetrics():
+				raw_others[name].put(algorithm.getMetric(name))
 		time_passed.put(end_time - start_time)
 		
 		algorithm.clear()
@@ -199,7 +202,19 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, 
 
 
 def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
-
+	# todo: move every non-standard metric here.
+	metric_names = set()
+	for algo in algorithms:
+		if not hasattr(algo, "listMetrics"):
+			continue
+		for name in algo.listMetrics():
+			metric_names.add(name)
+	metrics = dict()
+	metrics_var = dict()
+	for name in metric_names:
+		metrics[name] = []
+		metrics_var[name] = []
+	
 	avg_regret = []
 	avg_regret_var = []
 	cum_regret = []
@@ -223,6 +238,9 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			raw_avg = multiprocessing.Queue()
 			raw_eff = multiprocessing.Queue()
 			raw_pto = multiprocessing.Queue()
+			raw_others = dict()
+			for name in metric_names:
+				raw_others[name] = multiprocessing.Queue()
 			time_passed = multiprocessing.Queue()
 			
 			cum_regret.append([0]*T)
@@ -233,6 +251,10 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			avg_regret_var.append([0]*T)
 			eff_regret_var.append([0]*T)
 			pto_regret_var.append([0]*T)
+			for name in metric_names:
+				metrics[name].append([0]*T)
+				metrics_var[name].append([0]*T)
+			
 			processes = list()
 			assigned_rpts = 0
 			if rpts > AVAILABLE_CORES:
@@ -246,7 +268,7 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			for trial in range(required_processes):
 				# Do the multiprocessing in the repetitions and block until all are done. Assumption: Running a fixed strategy on a fixed environment always takes roughly the same amount of time, so the blocking is no real issue.
 				rpts_here = min(rpts_per_process, (rpts - assigned_rpts))
-				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, raw_pto, time_passed, rpts_here))
+				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, rpts_here))
 				process.start()
 				print("Process spawned, performing", rpts_here, "repetitions.")
 				processes.append(process)
@@ -265,6 +287,9 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			if hasattr(algorithm, "get_pto_rgt"):
 				refined_pto = refine(raw_pto, T, rpts)
 				has_pto = True
+			refined_others = dict()
+			for name in metric_names:
+				refined_others[name] = refine(raw_others[name], T, rpts)
 			
 			for x in range(rpts):
 				sum_times[i] += time_passed.get()
@@ -280,6 +305,8 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 					eff_regret[-1][y], eff_regret_var[-1][y] = evaluate(refined_eff[y])
 				if hasattr(algorithm, "get_pto_rgt"):
 					pto_regret[-1][y], pto_regret_var[-1][y] = evaluate(refined_pto[y])
+				for name in metric_names:
+					metrics[name][-1][y], metrics_var[name][-1][y] = evaluate(refined_others[name][y])
 	
 	for i in range(len(algorithms)):
 		print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (rpts*len(envs)))+" seconds.")
@@ -291,3 +318,6 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 	if has_pto:
 		writeBatch(env_names, algorithm_names, pto_regret, pto_regret_var, "Average Pareto Regret")
 	writeBatch(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret")
+	for name in metric_names:
+		#print(name)
+		writeBatch(env_names, algorithm_names, metrics[name], metrics_var[name], name)

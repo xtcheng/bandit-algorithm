@@ -1,5 +1,7 @@
 import sympy
 import numpy as np
+import math
+from scipy import optimize
 
 class EnvParabola:
 	def __init__(self, dimensions, pos_mean=0, pos_scale=5, slope_mean=1, slope_scale=0.5, boundaries=10, stability=1, fixed_breakpoints=False):
@@ -36,8 +38,12 @@ class EnvParabola:
 		else:
 			self.boundaries = boundaries
 		
-		self.refresh()
+		self.constraints = []
+		
+		#self.refresh() call this in the strategy to avoid having no random init due to deepcopy!
 	
+	def addConstraint(self, constraint):
+		self.constraints.append(constraint)
 	
 	def getVariables(self):
 		# Returns the list of variables that are the input of every cost function.
@@ -59,6 +65,16 @@ class EnvParabola:
 			self.refresh()
 		return float(current)
 	
+	def isViolating(self, inputs):
+		# Returns true if the inputs violate at least one of the constraints.
+		for constraint in self.constraints:
+			result = constraint
+			for i in range(len(self.variables)):
+				result = result.subs(self.variables[i], inputs[i])
+			#print(inputs, "evaluate to", result)
+			if result > 0:
+				return True
+		return False
 	
 	def getFunction(self):
 		# Returns the current cost function as a sympy-object, supporting evaluation and diff.
@@ -66,7 +82,7 @@ class EnvParabola:
 		# Internally switches to the next cost function then (which may be the same as before).
 		
 		ret = self.function
-		if not fixed_breakpoints:
+		if not self.fixed_breakpoints:
 			if np.random.rand() > self.stability:
 				self.refresh()
 		else:
@@ -82,6 +98,9 @@ class EnvParabola:
 		# Only input spaces in the form of hyperboxes are considered!
 		
 		return self.boundaries
+	
+	def getConstraints(self):
+		return self.constraints
 	
 	def getMinMax(self):
 		# Return the smallest and the greatest possible return of any cost function.
@@ -130,21 +149,31 @@ class EnvParabola:
 				self.function = a*((var+b)**2)
 			else:
 				self.function += a*((var+b)**2)
+		self.best = math.inf
+	
+	def evalConstraint(self, inputs, index):
+		result = self.constraints[index]
+		for i in range(len(self.variables)):
+			result = result.subs(self.variables[i], inputs[i])
+		return float(result)
+		
 	
 	def getBest(self):
 		# Returns the best possible output of the current cost function.
 		# Usually 0, unless the minimum has been shifted outside the feasible space.
 		# Ask this BEFORE the cost function / costs!
 		
-		inputs = list()
-		for i in range(len(self.shifts)):
-			# crop and append the optimal input for each dimension.
-			temp = max(-self.shifts[i], self.boundaries[i][0])
-			temp = min(temp, self.boundaries[i][1])
-			inputs.append(temp)
-		
-		# evaluate and return at that point (without switching to the next cost function).
-		return self.feedback(inputs, False)
+		if self.best == math.inf:
+			# If the function did not change, we have already cached the optimal result.
+			
+			cons = []
+			for i in range(len(self.constraints)):
+				cons.append({'type':'ineq', 'fun': (lambda x : -self.evalConstraint(x, i))})
+			result = optimize.minimize(self.feedback, args=False, x0=[0]*len(self.variables), constraints=cons, bounds=self.boundaries)
+			print(result)
+			self.best=result.fun
+			# Note that this can be off by about 10^(-17) and may lead to very slightly wrong regret results!
+		return self.best
 
 
 """
