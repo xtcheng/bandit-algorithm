@@ -55,7 +55,7 @@ class EnvMultiOutput:
 				if i == j:
 					continue
 				
-				# If there is another element j that is at least as good as i in all dimensions and better than j in at least one dimension, then i is not in the pareto front.
+				# If there is another element j that is at least as good as i in all dimensions and better than i in at least one dimension, then i is not in the pareto front.
 				if(np.all(mu[j] <= mu[i]) and np.any(mu[j] < mu[i])):
 					#print(i, "loses against", j)
 					fail = True
