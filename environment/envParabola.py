@@ -151,9 +151,9 @@ class EnvParabola:
 			b = np.random.normal(self.pos_mean, self.pos_scale)
 			self.shifts.append(b)
 			if self.function==0:
-				self.function = a*((var+b)**2)
+				self.function = a*((var-b)**2)
 			else:
-				self.function += a*((var+b)**2)
+				self.function += a*((var-b)**2)
 		self.best = math.inf
 	
 	def evalConstraint(self, inputs, index):

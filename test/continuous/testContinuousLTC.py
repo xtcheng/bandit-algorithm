@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	T = 10000
 	repeats = 8
 	
-	constrainted_env = EnvParabola(dimensions=3, pos_mean=-0.5, pos_scale=0.2, slope_mean=1, slope_scale=0, boundaries=10, stability=1)
+	constrainted_env = EnvParabola(dimensions=3, pos_mean=0.5, pos_scale=0.2, slope_mean=1, slope_scale=0, boundaries=10, stability=1)
 	vars = constrainted_env.getVariables()
 	constraint1 = vars[0] + vars[1] + vars[2] - 1
 	constrainted_env.addConstraint(constraint1)
