@@ -14,6 +14,8 @@ class GB_OCO_LTC:
 		
 		env.refresh()
 		
+		bounds = env.getSpace()
+		
 		# Expect a list of sympy functions, each being one constraint that is satified when <= 0.
 		constraints = env.getConstraints()
 		
@@ -37,8 +39,9 @@ class GB_OCO_LTC:
 		
 		for timestep in range(1, self.T+1):
 			best = env.getBest()
-			cost_fun = env.getFunction()
 			has_violated = env.isViolating(var_values)
+			violation = env.getViolation(var_values)
+			cost_fun = env.getFunction()
 			
 			# Calculate the costs of the current position.
 			costs = cost_fun
@@ -57,14 +60,17 @@ class GB_OCO_LTC:
 			
 			lambda_gradient = [0]*len(constraints)
 			for j in range(len(constraint_dervs)):
-				violation = constraints[j]
+				violation_per_constraint = constraints[j]
 				for i in range(d):
-					violation = violation.subs(vars[i], var_values[i])
-				lambda_gradient[j] = violation - self.eta*self.delta*lambda_values[j]
+					violation_per_constraint = violation_per_constraint.subs(vars[i], var_values[i])
+				lambda_gradient[j] = violation_per_constraint - self.eta*self.delta*lambda_values[j]
 			
 			# update x and lambda
 			for i in range(d): # Saver than adding numpy arrays
-				var_values[i] -= self.eta*var_gradient[i] # And projection into B? Something else to do here?
+				var_values[i] -= self.eta*var_gradient[i]
+				# And projection into cube B.
+				var_values[i] = max(bounds[i][0], var_values[i])
+				var_values[i] = min(bounds[i][1], var_values[i])
 			for j in range(len(constraint_dervs)):
 				lambda_values[j] = max(0, lambda_values[j] + self.eta*lambda_gradient[j])
 			#print("\nT =", timestep, "\nlambda gradient:", lambda_gradient, "\nlambda values:", lambda_values)
@@ -75,11 +81,8 @@ class GB_OCO_LTC:
 			self.avg_regret[timestep-1] = self.sum_regret/timestep
 			self.cum_regret[timestep-1] = self.sum_regret
 			
-			if has_violated:
-				self.metrics["Instantaneous Violation"][timestep-1] = 1
-				self.total_violation += 1
-			else:
-				self.metrics["Instantaneous Violation"][timestep-1] = 0
+			self.total_violation += violation
+			self.metrics["Instantaneous Violation"][timestep-1] = violation
 			self.metrics["Average Violation"][timestep-1] = self.total_violation/timestep
 	
 	

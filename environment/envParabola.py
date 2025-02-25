@@ -65,16 +65,21 @@ class EnvParabola:
 			self.refresh()
 		return float(current)
 	
+	def getViolation(self, inputs):
+		# Returns the violation of the constraint that was violated most.
+		# Note that non-violated constraints will have no effect; even overly well kept contraints will not improve the result.
+		result = 0
+		for constraint in self.constraints:
+			violation = constraint
+			for i in range(len(self.variables)):
+				violation = violation.subs(self.variables[i], inputs[i])
+			#print(inputs, "evaluate to", violation)
+			result = max(result, float(violation))
+		return result
+	
 	def isViolating(self, inputs):
 		# Returns true if the inputs violate at least one of the constraints.
-		for constraint in self.constraints:
-			result = constraint
-			for i in range(len(self.variables)):
-				result = result.subs(self.variables[i], inputs[i])
-			#print(inputs, "evaluate to", result)
-			if result > 0:
-				return True
-		return False
+		return (self.getViolation(inputs) > 0)
 	
 	def getFunction(self):
 		# Returns the current cost function as a sympy-object, supporting evaluation and diff.
@@ -170,7 +175,7 @@ class EnvParabola:
 			for i in range(len(self.constraints)):
 				cons.append({'type':'ineq', 'fun': (lambda x : -self.evalConstraint(x, i))})
 			result = optimize.minimize(self.feedback, args=False, x0=[0]*len(self.variables), constraints=cons, bounds=self.boundaries)
-			print(result)
+			#print(result)
 			self.best=result.fun
 			# Note that this can be off by about 10^(-17) and may lead to very slightly wrong regret results!
 		return self.best
