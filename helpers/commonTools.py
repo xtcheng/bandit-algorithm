@@ -13,3 +13,11 @@ def vectorLen(vector):
 	for a in vector:
 		temp_len += float(a**2)
 	return temp_len
+
+
+def costs2rewards(costs):
+	rewards = [0]*len(costs)
+	for i, cost in enumerate(costs):
+		assert cost.all() <= 1, str(cost) + " is too big for costs."
+		rewards[i] = 1 - cost
+	return rewards

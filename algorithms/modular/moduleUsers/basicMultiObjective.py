@@ -6,6 +6,8 @@ from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
 from algorithms.modular.adaptionModules.nullAdaptionModule import NullAdaptionModule
 from algorithms.modular.historyContainerMO import HistoryContainerMO
 from helpers.gini import gini
+from helpers.nash import nash
+from helpers.commonTools import costs2rewards
 
 class BasicMultiObjective(AbstractMAB):
 	def __init__(self,T,num_arm, num_objectives, delta, gini_weights):
@@ -31,6 +33,7 @@ class BasicMultiObjective(AbstractMAB):
 	def run(self,env):
 		total = 0 # Total costs
 		for t in range(0,self.T):
+			optimal_nash = env.getOptimalNash()
 			reward, optimal_costs, arm = self.pullArm(t, env)
 			
 			# For performance analysis
@@ -41,6 +44,8 @@ class BasicMultiObjective(AbstractMAB):
 			ar.append(total / (t+1))
 			gini_avg = gini([1], ar)
 			
+			ar = [costs2rewards(total/(t+1))]
+			nash_avg = nash([1], ar)
 			
 			# Instantaneous regret
 			ar = [self.weights]
@@ -56,6 +61,7 @@ class BasicMultiObjective(AbstractMAB):
 			self.cum_rgt[t] = self.sum_rgt
 			self.eff_rgt[t] = gini_avg - optimal_costs
 			self.avg_pto_rgt[t] = self.sum_pto_rgt / (t+1)
+			self.metrics["Effective Nash Regret"][t] = optimal_nash - nash_avg
 		self.epilogue()
 	
 	def epilogue(self):
@@ -71,6 +77,11 @@ class BasicMultiObjective(AbstractMAB):
 	def get_pto_rgt(self):
 		return self.avg_pto_rgt
 	
+	def getMetric(self, key):
+		return self.metrics[key]
+	
+	def listMetrics(self):
+		return {"Effective Nash Regret"}
 	
 	def clear(self):
 		# Also set the effective regret because we have it.
@@ -79,4 +90,7 @@ class BasicMultiObjective(AbstractMAB):
 		self.avg_pto_rgt = [0]*self.T
 		self.sum_pto_rgt = 0
 		self.historyContainer.fullReset()
+		self.metrics = dict()
+		self.metrics["Effective Nash Regret"] = [0]*self.T
+		
 		super().clear()

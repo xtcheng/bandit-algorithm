@@ -1,6 +1,8 @@
 import numpy as np
 from scipy import optimize
 from helpers.gini import gini
+from helpers.nash import *
+from helpers.commonTools import costs2rewards
 import math
 
 class EnvMultiOutput:
@@ -34,6 +36,7 @@ class EnvMultiOutput:
 		
 		# Just call this here because it needs to be called whenever mu has changed.
 		self.calcPareto(mu)
+		self.calcOptimalNash(mu)
 	
 	def getMeans(self, timesteps):
 		means = [None]*self.num_arm
@@ -84,3 +87,11 @@ class EnvMultiOutput:
 	
 	def getParetoRegret(self, arm):
 		return self.pareto_regrets[arm]
+	
+	def calcOptimalNash(self, mu):
+		con = [{'type':'eq', 'fun': (lambda x : sum(x)-1)}]
+		result = optimize.minimize(nashReverse, args=costs2rewards(mu), x0=[1/self.num_arm]*self.num_arm, constraints=con, bounds=[(0,1)]*self.num_arm)
+		self.optimal_nash = -result.fun
+	
+	def getOptimalNash(self):
+		return self.optimal_nash

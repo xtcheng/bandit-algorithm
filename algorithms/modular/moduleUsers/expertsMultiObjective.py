@@ -83,6 +83,9 @@ class ExpertsMultiObjective(BasicMultiObjective):
 		self.avg_pto_rgt = [0]*self.T
 		self.sum_pto_rgt = 0
 		
+		self.metrics = dict()
+		self.metrics["Effective Nash Regret"] = [0]*self.T
+		
 		self.historyContainer.fullReset()
 		self.adaption_module.fullReset()
 		

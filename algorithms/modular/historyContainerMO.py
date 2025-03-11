@@ -1,4 +1,5 @@
 import numpy as np
+from helpers.commonTools import costs2rewards
 
 class HistoryContainerMO:
 	def __init__(self, num_arm, num_objectives):
@@ -19,6 +20,9 @@ class HistoryContainerMO:
 		for a in range(self.num_arm):
 			# Refresh all because they might have been changed by the adaption module.
 			self.sorted_mu[a] = sorted(self.mu[a], reverse=True)
+		
+		# If the environment returns costs, but the strategy prefers rewards.
+		self.mu_reverse = costs2rewards(self.mu)
 		
 		# Let all experts do their own calculation
 		for user in self.users:
