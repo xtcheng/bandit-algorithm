@@ -11,14 +11,12 @@ class GB_OCO_LTC_BGD(GB_OCO_LTC):
 	
 	
 	def run(self,env):
-		env.refresh()
-		
 		bounds = env.getSpace()
 		d = len(bounds)
 		
 		
 		# Initialize both the starting values and the penalty weights with 0.
-		var_values = np.zeros(d) # numpy may reject sympy-stuff and behave weirdly when using multiple pointers to the same thing, but seems to be safe here.
+		y = np.zeros(d) # numpy may reject sympy-stuff and behave weirdly when using multiple pointers to the same thing, but seems to be safe here.
 		
 		# Note that we only have one lambda value this time, no matter how many constraints there are. (We actually might not even know the number of constraints.)
 		# The environment only returns one single number for the constraint violation, so the only thing we can do is to weight that.
@@ -38,20 +36,25 @@ class GB_OCO_LTC_BGD(GB_OCO_LTC):
 			
 			# Add the unit vector to the input both times.
 			u = unit(self.rng.normal(size=d))
-			x = var_values + delta*u
+			x = y + delta*u
 			violation = env.getViolation(x)
 			costs = env.feedback(x)
 			
 			# It should really be this simple: costs*u is an estimation for the gradient of the actual cost function, and lambda_value*(violation*u) for the gradient of the violation "function".
 			var_gradient = (costs+lambda_value*violation)*u
 			
-			lambda_gradient = violation - self.eta*self.delta*lambda_value
+			lambda_gradient = violation - ny*delta*lambda_value
 			
 			
 			# From here, it is almost the same as before.
 			
 			# update x and lambda
-			var_values -= ny*var_gradient
+			y_raw = y - ny*(costs+violation*lambda_value)*u*d/delta
+			# And project it into the sphere
+			if vectorLen(y_raw) > (1-alpha) * R:
+				y = (1-alpha) * R * unit(y_raw)
+			else:
+				y = y_raw
 			lambda_value = max(0, lambda_value + self.eta*lambda_gradient)
 			
 			

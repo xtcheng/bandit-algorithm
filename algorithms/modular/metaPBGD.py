@@ -15,7 +15,6 @@ class MetaPBGD:
 	def run(self,env):
 	
 		# Most of the init is like before:
-		env.refresh()
 		bounds = env.getSpace()
 		d = len(bounds)
 		

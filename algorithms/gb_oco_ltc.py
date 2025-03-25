@@ -12,8 +12,6 @@ class GB_OCO_LTC:
 	
 		# Init:
 		
-		env.refresh()
-		
 		bounds = env.getSpace()
 		
 		# Expect a list of sympy functions, each being one constraint that is satified when <= 0.

@@ -50,8 +50,6 @@ def compressSamples(samples, errors):
 
 def readOneResult(filename):
 	global results
-	if not "results" in globals():
-		results = dict()
 	label, what = filename.split(".")[:2]
 	if "/" in label:
 		label = label.split("/")[-1]
@@ -68,6 +66,9 @@ def readOneResult(filename):
 # Read in the results in the standard resultfolder (or any other folder that contains results). This will prepare all the data there for plotting, so you do not need to re-run strategies that did not change to compare them against ones that did. Just make sure the folder does not contain outdated files from previous experiments, because it will to include ALL files that are in the folder.
 def readAllResults(path=0):
 	global resultpath
+	global results
+	results = dict()
+	
 	if path == 0:
 		if not "resultpath" in globals():
 			resultpath = "results/"
@@ -151,9 +152,11 @@ def refine(samples, timesteps, rpts):
 			ret[i].append(float(one_series[i])) # cast to float to ensure it is not some weird numpy object that would cause trouble in the plotting.
 	return ret
 
-def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, todo):
+def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, todo, refresh_first):
 	for x in range(todo):
 		start_time = time.perf_counter()
+		if refresh_first:
+			env.refresh()
 		algorithm.run(env)
 		end_time = time.perf_counter()
 		raw_cum.put(algorithm.get_cum_rgt())
@@ -187,10 +190,10 @@ def purgeResults():
 	
 
 
-def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, purge_old_results=True):
+def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, purge_old_results=True, refresh_first=False):
 	if purge_old_results:
 		purgeResults()
-	testOnly(T, rpts, envs, algorithms, algorithm_names, env_names)
+	testOnly(T, rpts, envs, algorithms, algorithm_names, env_names, refresh_first)
 	readAllResults()
 	
 	# TODO: Handle this like the results (save and plot from file)
@@ -201,7 +204,7 @@ def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, 
 	plotResults(logscale)
 
 
-def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
+def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names, refresh_first=False):
 	# todo: move every non-standard metric here.
 	metric_names = set()
 	for algo in algorithms:
@@ -227,7 +230,13 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 	has_pto = False
 	sum_times = [0]*len(algorithms)
 	
-	AVAILABLE_CORES = 8 # How many subprocesses will be spawned at maximum. This number should not exceed the number of physical cores available on your system to avoid diminishing returns and crashes! If less repetitions are wanted, only that much processes will be spawned. If more repetitions are wanted, they will be equally distributed among the processes.
+	global AVAILABLE_CORES
+	if not "AVAILABLE_CORES" in globals():
+		AVAILABLE_CORES = 8 # How many subprocesses will be spawned at maximum. This number should not exceed the number of physical cores available on your system to avoid diminishing returns and crashes! If less repetitions are wanted, only that much processes will be spawned. If more repetitions are wanted, they will be equally distributed among the processes.
+	
+	global QUIET
+	if not "QUIET" in globals():
+		QUIET = False # Information on spawned processes will be output unless not desired.
 	
 	assert len(envs) == len(env_names) and len(algorithms) == len(algorithm_names)
 	
@@ -260,7 +269,7 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			if rpts > AVAILABLE_CORES:
 				required_processes = AVAILABLE_CORES
 				rpts_per_process = math.ceil(rpts / AVAILABLE_CORES)
-				if rpts_per_process != rpts / AVAILABLE_CORES:
+				if rpts_per_process != rpts / AVAILABLE_CORES and not QUIET:
 					print("Warning: repetitions could not be evenly distributed.")
 			else:
 				required_processes = rpts
@@ -268,13 +277,15 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names):
 			for trial in range(required_processes):
 				# Do the multiprocessing in the repetitions and block until all are done. Assumption: Running a fixed strategy on a fixed environment always takes roughly the same amount of time, so the blocking is no real issue.
 				rpts_here = min(rpts_per_process, (rpts - assigned_rpts))
-				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, rpts_here))
+				process = multiprocessing.Process(target=run, args=(deepcopy(algorithm), deepcopy(env), raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_names, time_passed, rpts_here, refresh_first))
 				process.start()
-				print("Process spawned, performing", rpts_here, "repetitions.")
+				if not QUIET:
+					print("Process spawned, performing", rpts_here, "repetitions.")
 				processes.append(process)
 				# If we could not evenly distribute, we might have assigned everything before running out of processes.
 				assigned_rpts += rpts_here
-				print(rpts-assigned_rpts, "left.")
+				if not QUIET:
+					print(rpts-assigned_rpts, "left.")
 				if assigned_rpts == rpts:
 					break
 			

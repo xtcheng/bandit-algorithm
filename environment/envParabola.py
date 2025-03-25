@@ -40,7 +40,7 @@ class EnvParabola:
 		
 		self.constraints = []
 		
-		#self.refresh() call this in the strategy to avoid having no random init due to deepcopy!
+		self.refresh()
 	
 	def addConstraint(self, constraint):
 		self.constraints.append(constraint)
