@@ -73,7 +73,14 @@ def readAllResults(path=0):
 		if not "resultpath" in globals():
 			resultpath = "results/"
 		path = resultpath
-	for filename in os.listdir(path):
+	try:
+		filenames = os.listdir(path)
+	except:
+		print("Folder", path, "does not exist (yet)")
+		return
+	if len(filenames) == 0:
+		print("Folder", path, "is empty.")
+	for filename in filenames:
 		if len(filename) >= 4 and filename[-4:] == ".csv":
 			readOneResult(path + filename)
 
@@ -156,7 +163,7 @@ def run(algorithm, env, raw_cum, raw_avg, raw_eff, raw_pto, raw_others, metric_n
 	for x in range(todo):
 		start_time = time.perf_counter()
 		if refresh_first:
-			env.refresh()
+			env.clear()
 		algorithm.run(env)
 		end_time = time.perf_counter()
 		raw_cum.put(algorithm.get_cum_rgt())

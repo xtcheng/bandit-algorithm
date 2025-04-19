@@ -16,6 +16,8 @@ def vectorLen(vector):
 
 
 def costs2rewards(costs):
+	if type(costs) is list:
+		costs = np.array(costs)
 	rewards = [0]*len(costs)
 	for i, cost in enumerate(costs):
 		assert cost.all() <= 1, str(cost) + " is too big for costs."
