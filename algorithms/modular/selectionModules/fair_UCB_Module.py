@@ -19,8 +19,9 @@ class Fair_UCB_Module(MO_OGDE_Module):
 	
 	def omegaFunction(self, arm, dimension):
 		# Calculates the confidence bound that is added on top of the estimation.
-		log_part = np.log( 4*self.num_objectives *self.num_arm *self.T / self.delta )
-		return np.sqrt( 12*(1-self.history.mu_reverse[arm][dimension])*log_part / self.history.num_play[arm])  +  12*log_part / self.history.num_play[arm]
+		log_part = np.log(4*self.num_objectives *self.num_arm *self.history.current_turn / self.delta )
+		return np.sqrt(log_part / self.history.num_play[arm]) 
+		#return np.sqrt( 12*(1-self.history.mu_reverse[arm][dimension])*log_part / self.history.num_play[arm])  +  12*log_part / self.history.num_play[arm]
 	
 	def updateMix(self):
 		# Will not do it like this because the parent will choose an arm that has never been chosen, if there is any, which has the same effect as choosing the arm of the current timestep, but is safer if the history might be modified.
@@ -36,7 +37,7 @@ class Fair_UCB_Module(MO_OGDE_Module):
 		for a in range(self.num_arm):
 			U.append([])
 			for d in range(self.num_objectives):
-				U[-1].append(min(self.history.mu_reverse[a][d] + self.omegaFunction(a, d), 1))
+				U[-1].append(max(self.history.mu_reverse[a][d] - self.omegaFunction(a, d) , 0)) #
 		
 		# Now find the mix that maximizes the Nash function of this.
 		con = [{'type':'eq', 'fun': (lambda x : sum(x)-1)}]

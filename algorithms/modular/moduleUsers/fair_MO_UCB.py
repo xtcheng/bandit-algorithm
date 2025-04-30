@@ -3,6 +3,7 @@ if not "../" in sys.path:
 	sys.path.append('../')
 from algorithms.modular.moduleUsers.basicMultiObjective import BasicMultiObjective
 from algorithms.modular.selectionModules.fair_UCB_Module import Fair_UCB_Module
+from algorithms.modular.adaptionModules.bocdModule import BOCDModule
 from algorithms.modular.adaptionModules.nullAdaptionModule import NullAdaptionModule
 from algorithms.modular.historyContainerMO import HistoryContainerMO
 
