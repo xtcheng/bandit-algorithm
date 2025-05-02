@@ -26,7 +26,7 @@ class Pareto_UCB_Module(MO_OGDE_Module):
 				ucb[arm] = self.history.mu[arm] - np.sqrt(self.alpha*np.log(self.history.current_turn * (self.num_objectives * self.num_arm )**0.25 )) / self.history.num_play[arm]
 		
 		# calculate the pareto front
-		self.current_mix = np.ones(self.num_arm)
+		pareto = np.ones(self.num_arm)
 		for j in range(self.num_arm):
 			for i in range(self.num_arm):
 				if i == j:
@@ -34,9 +34,13 @@ class Pareto_UCB_Module(MO_OGDE_Module):
 				# Again we are talking about costs, so an arm is not in the pareto front if it yields more than others, not less.
 				if(np.all(ucb[j] <= ucb[i]) and np.any(ucb[j] < ucb[i])):
 					#print(i, "loses against", j)
-					self.current_mix[i] = 0
-		self.current_mix /= sum(self.current_mix)
+					pareto[i] = 0
+        
+		pareto_arms = np.where(pareto != 0)[0]
+		selected_index = np.random.choice(pareto_arms)
+		self.current_mix = np.zeros(self.num_arm)
+		self.current_mix[selected_index] += 1
 		#print(ucb)
-		#print(self.current_mix)
+		print(self.current_mix)
 		#print()
 		
