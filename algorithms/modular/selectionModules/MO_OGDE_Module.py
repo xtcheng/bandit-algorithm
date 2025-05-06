@@ -24,9 +24,6 @@ class MO_OGDE_Module(AbstractSelectionModule):
 			#print("Index", self.history.num_play.index(0), "is 0!")
 			return self.history.num_play.index(0)
 		else:
-			sum_mix = 0
-			for m in self.current_mix:
-				sum_mix += m
 			# Select a random arm according to the distribution
 			return np.random.choice(range(self.num_arm), p=(self.current_mix))
 	

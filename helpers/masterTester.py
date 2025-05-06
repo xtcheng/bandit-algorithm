@@ -119,7 +119,13 @@ def plotMeans(means, title):
 	#plt.show()
 
 def plotOnce(data, label, logscale):
-	colors = iter(plt.cm.jet(np.linspace(0, 1, len(data))))
+	custom_colors = ['r','b','g','pink','orange']
+	if len(data) > 5:
+		auto_colors = list(plt.cm.jet(np.linspace(0, 1, len(data)-5)))
+		all_colors = custom_colors + auto_colors
+	else:
+		all_colors = custom_colors
+	colors = iter(all_colors)
 	plt.figure(figsize=(6, 5))
 	for what in data:
 		color = next(colors)
@@ -331,11 +337,11 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names, refresh_firs
 	
 	
 	writeBatch(env_names, algorithm_names, cum_regret, cum_regret_var, "Cumulative Regret")
-	if has_eff:
-		writeBatch(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret")
+# 	if has_eff:
+# 		writeBatch(env_names, algorithm_names, eff_regret, eff_regret_var, "Effective Regret")
 	if has_pto:
-		writeBatch(env_names, algorithm_names, pto_regret, pto_regret_var, "Average Pareto Regret")
-	writeBatch(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret")
+		writeBatch(env_names, algorithm_names, pto_regret, pto_regret_var, "Cumulative Pareto Regret")
+# 	writeBatch(env_names, algorithm_names, avg_regret, avg_regret_var, "Average Regret")
 	for name in metric_names:
 		#print(name)
 		writeBatch(env_names, algorithm_names, metrics[name], metrics_var[name], name)
