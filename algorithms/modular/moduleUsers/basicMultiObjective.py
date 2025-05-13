@@ -71,17 +71,15 @@ class BasicMultiObjective(AbstractMAB):
 		pass
 	
 	
-	def get_eff_rgt(self):
-		return self.eff_rgt
-	
-	def get_pto_rgt(self):
-		return self.avg_pto_rgt
-	
 	def getMetric(self, key):
+		if key == "Effective Regret":
+			return self.eff_rgt
+		if key == "Cumulative Pareto Regret":
+			return self.avg_pto_rgt
 		return self.metrics[key]
 	
 	def listMetrics(self):
-		return {"Effective Nash Regret"}
+		return {"Effective Nash Regret", "Effective Regret", "Cumulative Pareto Regret"}
 	
 	def clear(self):
 		# Also set the effective regret because we have it.
