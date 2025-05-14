@@ -28,6 +28,13 @@ class BasicMultiObjective(AbstractMAB):
 		self.current_mix = self.selection_module.current_mix
 		return reward, optimal_costs, arm
 	
+	def gini_cost(self,arm,env):
+		gc = 0
+		mu = env.getMu()
+		costs = sorted(mu[arm], reverse=True)
+		for i in range(len(costs)):
+			gc += self.weights[i] * costs[i]
+		return gc
 	
 	# run needs to be redifined because of the reward being multi-dimensional and there is no optimal action, but an optimal mix.
 	def run(self,env):
@@ -53,14 +60,14 @@ class BasicMultiObjective(AbstractMAB):
 				# Of course you must not use such direct access outside the analysis.
 				ar.append(m)
 			ins = gini(self.current_mix, ar) - optimal_costs
-			
+			#ins = self.gini_cost(arm,env) - optimal_costs
 			
 			self.sum_rgt += ins
 			self.sum_pto_rgt += env.getParetoRegret(arm)
-			self.avg_rgt[t] = self.sum_rgt / (t+1)
-			self.cum_rgt[t] = self.sum_rgt
-			self.eff_rgt[t] = gini_avg - optimal_costs
-			self.avg_pto_rgt[t] = self.sum_pto_rgt / (t+1)
+			self.avg_rgt[t] += self.sum_rgt / (t+1)
+			self.cum_rgt[t] += self.sum_rgt
+			self.eff_rgt[t] += gini_avg - optimal_costs
+			self.cum_pto_rgt[t] += self.sum_pto_rgt 
 			self.metrics["Effective Nash Regret"][t] = optimal_nash - nash_avg
 		self.epilogue()
 	
@@ -75,7 +82,7 @@ class BasicMultiObjective(AbstractMAB):
 		return self.eff_rgt
 	
 	def get_pto_rgt(self):
-		return self.avg_pto_rgt
+		return self.cum_pto_rgt
 	
 	def getMetric(self, key):
 		return self.metrics[key]
@@ -87,7 +94,7 @@ class BasicMultiObjective(AbstractMAB):
 		# Also set the effective regret because we have it.
 		# And Pareto regret.
 		self.eff_rgt = [0]*self.T
-		self.avg_pto_rgt = [0]*self.T
+		self.cum_pto_rgt = [0]*self.T
 		self.sum_pto_rgt = 0
 		self.historyContainer.fullReset()
 		self.metrics = dict()

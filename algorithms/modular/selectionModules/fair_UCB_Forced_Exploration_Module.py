@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat May  3 16:27:46 2025
+
+@author: Xiaotong
+"""
+
 import numpy as np
 import sys
 from scipy import optimize
@@ -7,7 +14,7 @@ import math
 from helpers.gini import gini
 if not "../" in sys.path:
 	sys.path.append('../')
-from algorithms.modular.selectionModules.MO_OGDE_Module import MO_OGDE_Module
+from algorithms.modular.selectionModules.MO_OGDE_Forced_Exploration_Module import MO_OGDE_Forced_Exploration_Module
 from algorithms.modular.selectionModules.abstractSelectionModule import AbstractSelectionModule
 
 def ggi(x, mu):
@@ -22,19 +29,20 @@ def ggi(x, mu):
 	
 	return index
 
-class Fair_UCB_Module(MO_OGDE_Module):
-	def __init__(self, history, T, num_arm, num_objectives, delta):
+class Fair_UCB_Forced_Exploration_Module(MO_OGDE_Forced_Exploration_Module):
+	def __init__(self, history, T, num_arm, num_objectives, delta, alpha):
 		self.T = T
 		self.num_arm = num_arm
 		self.num_objectives = num_objectives
 		self.delta = delta
+		self.alpha = alpha
 		self.history = history
 		self.history.register(self)
 		self.fullReset()
  	
 	def omegaFunction(self, arm, dimension):
 		# Calculates the confidence bound that is added on top of the estimation.history.current_turn
-		log_part = np.log(4*self.num_objectives *self.num_arm *self.T / self.delta )
+		log_part = np.log(4*self.num_objectives *self.num_arm *self.history.current_turn)
 		return np.sqrt(log_part / 2*self.history.num_play[arm]) 
 		#return np.sqrt( 12*(1-self.history.mu_reverse[arm][dimension])*log_part / self.history.num_play[arm])  +  12*log_part / self.history.num_play[arm]
  	
@@ -67,5 +75,5 @@ class Fair_UCB_Module(MO_OGDE_Module):
                                  })
 		self.current_mix = result.x
 		self.current_mix /= np.sum(self.current_mix)
-		if self.history.current_turn % 100 == 0:
-			print(self.history.mu)
+# 		if self.history.current_turn % 100 == 0:
+# 			print(lcb)
