@@ -12,23 +12,22 @@ class LinUCBModule:
 		self.fullReset()
 	
 	def suggestArm(self):
-		theta = np.linalg.inv(self.A) * self.b
+		theta = np.matmul(np.linalg.inv(self.A) , self.b)
 		p = [0]*self.num_arm
 		for arm in range(self.num_arm):
-			print(theta)
-			print(self.arm_features[arm])
-			print(np.transpose(theta)*self.arm_features[arm])
-			#problem: I multiply a dxd matrix with a dx1 matrix, so the result should be a dx1 matrix, but it is a dxd matrix instead.
-			p[arm] = np.transpose(theta)*self.arm_features[arm] + self.alpha * np.sqrt( np.transpose(self.arm_features[arm]) * np.linalg.inv(self.A) * self.arm_features[arm] )
-		max_v = 0
+			p[arm] = np.matmul(np.transpose(theta), self.arm_features[arm]) + self.alpha * np.sqrt( np.matmul(np.matmul(np.transpose(self.arm_features[arm]) , np.linalg.inv(self.A)) , self.arm_features[arm]) )
+		"""max_v = 0
 		max_i = 0
 		for i in range(self.num_arm):
 			if p[i][i] > max_v:
 				max_v = p[i][i]
 				max_i = i
-		return max_i
+		return max_i"""
+		return np.argmax(p)
 	
 	def thisHappened(self, arm, reward, timestep):
+		if reward <= 0:
+			print(reward)
 		self.A = self.A + self.arm_features[arm] * np.transpose(self.arm_features[arm])
 		self.b = self.b + self.arm_features[arm] * reward
 	
