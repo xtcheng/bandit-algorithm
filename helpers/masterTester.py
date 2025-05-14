@@ -15,8 +15,8 @@ def evaluate(samples):
 	
 	temp_sum = 0
 	for trial in range(len(samples)):
-		temp_sum += math.sqrt((samples[trial] - avg)**2)
-	var = temp_sum / len(samples)
+		temp_sum += (samples[trial] - avg)**2
+	var = math.sqrt(temp_sum / len(samples))
 	return avg, var
 
 def makeInterval(average, variance):
