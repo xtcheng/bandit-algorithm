@@ -67,7 +67,7 @@ class BasicMultiObjective(AbstractMAB):
 			self.avg_rgt[t] += self.sum_rgt / (t+1)
 			self.cum_rgt[t] += self.sum_rgt
 			self.eff_rgt[t] += gini_avg - optimal_costs
-			self.cum_pto_rgt[t] += self.sum_pto_rgt 
+			self.cum_pto_rgt[t] += self.sum_pto_rgt
 			self.metrics["Effective Nash Regret"][t] = optimal_nash - nash_avg
 		self.epilogue()
 	
@@ -78,17 +78,15 @@ class BasicMultiObjective(AbstractMAB):
 		pass
 	
 	
-	def get_eff_rgt(self):
-		return self.eff_rgt
-	
-	def get_pto_rgt(self):
-		return self.cum_pto_rgt
-	
 	def getMetric(self, key):
+		if key == "Effective Regret":
+			return self.eff_rgt
+		if key == "Cumulative Pareto Regret":
+			return self.cum_pto_rgt
 		return self.metrics[key]
 	
 	def listMetrics(self):
-		return {"Effective Nash Regret"}
+		return {"Effective Nash Regret", "Effective Regret", "Cumulative Pareto Regret"}
 	
 	def clear(self):
 		# Also set the effective regret because we have it.
