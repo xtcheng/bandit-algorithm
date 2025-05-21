@@ -50,7 +50,7 @@ def compressSamples(samples, errors):
 
 def readOneResult(filename):
 	global results
-	label, what = filename.split(".")[:2]
+	label, what = filename.split("/")[-1][len("yyyy-mm-dd-hh-mm-ss-"):].split(".")[:2]
 	if "/" in label:
 		label = label.split("/")[-1]
 	if not label in results:
@@ -64,7 +64,7 @@ def readOneResult(filename):
 
 
 # Read in the results in the standard resultfolder (or any other folder that contains results). This will prepare all the data there for plotting, so you do not need to re-run strategies that did not change to compare them against ones that did. Just make sure the folder does not contain outdated files from previous experiments, because it will to include ALL files that are in the folder.
-def readAllResults(path=0):
+def readAllResults(path=0, only_latest=True):
 	global resultpath
 	global results
 	results = dict()
@@ -80,20 +80,44 @@ def readAllResults(path=0):
 		return
 	if len(filenames) == 0:
 		print("Folder", path, "is empty.")
+	
+	# First look at the files and group them by time.
+	names_per_time = {}
 	for filename in filenames:
-		if len(filename) >= 4 and filename[-4:] == ".csv":
-			readOneResult(path + filename)
+		if len(filename) >= 4+len("yyyy-mm-dd-hh-mm-ss-") and filename[-4:] == ".csv":
+			timestruct = time.strptime(filename[:len("yyyy-mm-dd-hh-mm-ss")], "%Y-%m-%d-%H-%M-%S")
+			if not timestruct in names_per_time:
+				names_per_time[timestruct] = set()
+			names_per_time[timestruct].add(filename[len("yyyy-mm-dd-hh-mm-ss-"):])
+	
+	# Then grab the latest file of every type.
+	seen_names = set()
+	final_names = set()
+	for key in sorted(names_per_time, reverse=True):
+		for name in names_per_time[key]:
+			if name in seen_names:
+				continue
+			final_names.add(time.strftime("%Y-%m-%d-%H-%M-%S", key) + "-" + name)
+			seen_names.add(name)
+		if only_latest:
+			# If we only want to consider the latest data, just stop after the first loop.
+			break
+	
+	# Finally, pass all eligible filenames to the next function.
+	for filename in final_names:
+		readOneResult(path + filename)
 
-def writeBatch(env_names, algorithm_names, samples, samples_var, label):
+def writeBatch(env_names, algorithm_names, samples, samples_var, label, timestring):
 	global resultpath
 	if not "resultpath" in globals():
 		resultpath = "results/"
 	os.makedirs(resultpath, exist_ok=True)
+	assert len(timestring) == len("yyyy-mm-dd-hh-mm-ss")
 	for j, env in enumerate(env_names):
 		for i, algorithm in enumerate(algorithm_names):
-			filename = label + "."
+			filename = timestring + "-" + label + "."
 			data = (samples[len(algorithm_names)*j + i], samples_var[len(algorithm_names)*j + i])
-			filename += algorithm_names[i]+" on "+env_names[j] + ".csv"
+			filename += algorithm_names[i] + " on "+env_names[j] + ".csv"
 			np.savetxt(resultpath + filename, data, delimiter=',')
 
 def plotMeans(means, title):
@@ -201,7 +225,7 @@ def purgeResults():
 	
 
 
-def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, purge_old_results=True, refresh_first=False):
+def test(T, rpts, envs, algorithms, algorithm_names, env_names, logscale=False, purge_old_results=False, refresh_first=False):
 	if purge_old_results:
 		purgeResults()
 	testOnly(T, rpts, envs, algorithms, algorithm_names, env_names, refresh_first)
@@ -310,6 +334,8 @@ def testOnly(T, rpts, envs, algorithms, algorithm_names, env_names, refresh_firs
 	for i in range(len(algorithms)):
 		print("Average time for "+algorithm_names[i]+": "+str(sum_times[i] / (rpts*len(envs)))+" seconds.")
 	
+	# Grab the time only once for everything. This allows easier grouping later.
+	timestring = time.strftime("%Y-%m-%d-%H-%M-%S")
 	for name in metric_names:
 		#print(name)
-		writeBatch(env_names, algorithm_names, metrics[name], metrics_var[name], name)
+		writeBatch(env_names, algorithm_names, metrics[name], metrics_var[name], name, timestring)
