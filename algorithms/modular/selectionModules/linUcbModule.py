@@ -12,10 +12,10 @@ class LinUCBModule:
 		self.fullReset()
 	
 	def suggestArm(self):
-		theta = np.matmul(np.linalg.inv(self.A) , self.b)
-		p = [0]*self.num_arm
+		self.theta = np.matmul(np.linalg.inv(self.A) , self.b)
+		p = np.zeros(self.num_arm)
 		for arm in range(self.num_arm):
-			p[arm] = np.matmul(np.transpose(theta), self.arm_features[arm]) + self.alpha * np.sqrt( np.matmul(np.matmul(np.transpose(self.arm_features[arm]) , np.linalg.inv(self.A)) , self.arm_features[arm]) )
+			p[arm] = np.dot(self.theta, self.arm_features[arm]) + self.alpha * np.sqrt( np.matmul(np.matmul(self.arm_features[arm].T , np.linalg.inv(self.A)) , self.arm_features[arm]) )
 		"""max_v = 0
 		max_i = 0
 		for i in range(self.num_arm):
@@ -23,12 +23,14 @@ class LinUCBModule:
 				max_v = p[i][i]
 				max_i = i
 		return max_i"""
+		print(self.theta)
 		return np.argmax(p)
 	
 	def thisHappened(self, arm, reward, timestep):
 		if reward <= 0:
 			print(reward)
-		self.A = self.A + self.arm_features[arm] * np.transpose(self.arm_features[arm])
+		# reshape(-1, 1) means n subarrays with 1 entries each, but actually means 1xn matrix (alias normal vector) and not nx1.
+		self.A = self.A + np.matmul(self.arm_features[arm].reshape(-1, 1), self.arm_features[arm].reshape(1, -1))
 		self.b = self.b + self.arm_features[arm] * reward
 	
 	def knowArmFeatures(self, features):
