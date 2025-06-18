@@ -203,6 +203,9 @@ def run(algorithm, env, raw_others, metric_names, time_passed, todo, refresh_fir
 				raw_others[name].put(algorithm.get_avg_rgt())
 			elif hasattr(algorithm, "listMetrics") and name in algorithm.listMetrics():
 				raw_others[name].put(algorithm.getMetric(name))
+			else:
+				# Insert zeros so there still is something to plot.
+				raw_others[name].put(np.zeros(algorithm.T))
 		time_passed.put(end_time - start_time)
 		
 		algorithm.clear()
