@@ -15,13 +15,10 @@ class LinUCB(AbstractMAB):
 	def run(self,env):
 		for t in range(0,self.T):
 			self.selection_module.knowArmFeatures(env.getArmFeatures()) # New!
-			#print("Learned", self.selection_module.arm_features)
 			arm = self.selection_module.suggestArm()
-			#print("Used", self.selection_module.arm_features)
 			reward, optimal_reward = env.feedback(arm)
 			self.selection_module.thisHappened(arm, reward, t)
 			self.adaption_module.thisHappened(arm, reward, t)
-			#print("Used", self.selection_module.arm_features)
 			
 			# For performance analysis
 			self.sum_rgt += (optimal_reward - reward)

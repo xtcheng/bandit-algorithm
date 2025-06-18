@@ -29,7 +29,6 @@ class LinUCBModule2:
 		
 		best_reward = -1
 		best_arm = 0
-		print("Using features", self.arm_features)
 		for arm in range(self.num_arm):
 			reward = np.dot(ucb, self.arm_features[arm])
 			if reward > best_reward:
@@ -39,7 +38,6 @@ class LinUCBModule2:
 	
 	def thisHappened(self, arm, reward, timestep):
 		# Take the full reward and split it onto the features according to their presence in the chosen arm. This is a big simplification, but may work.
-		print("Using features", self.arm_features)
 		total_features = sum(arm_features[arm])
 		self.pseudo_current_turn += total_features
 		for feature in range(self.num_features):
@@ -48,7 +46,6 @@ class LinUCBModule2:
 	
 	def knowArmFeatures(self, features):
 		self.arm_features = features
-		print("Learned features", self.arm_features)
 	
 	def fullReset(self):
 		self.feature_exploration = [0]*self.num_features

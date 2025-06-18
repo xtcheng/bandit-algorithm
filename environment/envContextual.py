@@ -31,12 +31,6 @@ class EnvContextual:
 		for i in range(self.num_arm):
 			self.arm_features[i] = np.random.uniform(0,1,self.num_features)
 			self.mu[i] = np.dot(self.arm_features[i], self.theta)
-			print(self.arm_features[i], self.theta)
-			print(self.mu[i])
-			"""for j in range(self.num_features):
-				self.arm_features[i][j] = self.rng.uniform()
-				# Also calculate the new reward expectations in one go.
-				self.mu[i] += self.arm_features[i][j] * self.theta[j]"""
 	
 	def getArmFeatures(self):
 		return deepcopy(self.arm_features)
