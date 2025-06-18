@@ -26,11 +26,12 @@ if __name__ == '__main__':
 	#envs.append(EnvContextual(num_arm, len(user_features), user_features, 1))
 	envs.append(EnvContextual(num_arm, user_features, noise, False))
 	envs.append(EnvContextual(num_arm, user_features, noise, True))
-
-
+	
+	delta = 0.05
+	alpha = np.sqrt(np.log(2*T*delta) / 2)
 	algorithms = []
-	algorithms.append(LinUCB(T, num_arm, len(user_features), alpha=0.5))
-	#algorithms.append(LinUCB2(T, num_arm, len(user_features), alpha=0.5))
+	algorithms.append(LinUCB(T, num_arm, len(user_features), alpha))
+	#algorithms.append(LinUCB2(T, num_arm, len(user_features), alpha))
 	algorithms.append(UCB1(T, num_arm, xi=0.5))
 	
 	algorithm_names = []
