@@ -14,8 +14,7 @@ class EnvContextual:
 		for i in range(self.num_arm):
 			self.arm_features[i] = [0]*self.num_features
 		self.noise = noise
-		self.rng = np.random.default_rng()
-		self.renewArms()
+		self.renewArms(force=True)
 	
 	def feedback(self,arm):
 		rwd = self.mu[arm] + self.noise.sample_trunc()
@@ -23,14 +22,14 @@ class EnvContextual:
 		# Ensure rewards are between 0 and 1.
 		#rwd = max(0, min(1, rwd))
 		#br = max(0, min(1, br))
-		if self.renewing_arms:
-			self.renewArms()
+		self.renewArms()
 		return rwd, br
 	
-	def renewArms(self):
-		for i in range(self.num_arm):
-			self.arm_features[i] = np.random.uniform(0,1,self.num_features)
-			self.mu[i] = np.dot(self.arm_features[i], self.theta)
+	def renewArms(self, force=False):
+		if self.renewing_arms or force:
+			for i in range(self.num_arm):
+				self.arm_features[i] = np.random.uniform(0,1,self.num_features)
+				self.mu[i] = np.dot(self.arm_features[i], self.theta)
 	
 	def getArmFeatures(self):
 		return deepcopy(self.arm_features)
