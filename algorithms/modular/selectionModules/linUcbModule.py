@@ -19,7 +19,6 @@ class LinUCBModule:
 		return np.argmax(p)
 	
 	def thisHappened(self, arm, reward, timestep):
-		assert reward > 0, "Oups."
 		# reshape(-1, 1) means n subarrays with 1 entries each, but actually means 1xn matrix (alias normal vector) and not nx1.
 		self.A = self.A + np.matmul(self.arm_features[arm].reshape(-1, 1), self.arm_features[arm].reshape(1, -1))
 		self.b = self.b + self.arm_features[arm] * reward
