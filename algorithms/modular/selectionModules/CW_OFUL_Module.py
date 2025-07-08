@@ -1,0 +1,37 @@
+import numpy as np
+import sys
+if not "../" in sys.path:
+	sys.path.append('../')
+
+class CW_OFUL_Module:
+	def __init__(self,T,num_arm, num_features, lmda, beta, alpha):
+		self.T = T
+		self.num_arm = num_arm
+		self.num_features = num_features
+		self.lmda = lmda
+		self.beta = beta
+		self.alpha = alpha
+		
+		self.fullReset()
+	
+	def suggestArm(self):
+		self.theta = np.matmul(np.linalg.inv(self.sigma) , self.b)
+		p = np.zeros(self.num_arm)
+		for arm in range(self.num_arm):
+			p[arm] = np.dot(self.theta, self.arm_features[arm]) + self.beta * np.sqrt( np.matmul(self.arm_features[arm].T , np.matmul(np.linalg.inv(self.sigma) , self.arm_features[arm])) )
+		return np.argmax(p)
+	
+	def thisHappened(self, arm, reward, timestep):
+		self.A = self.A + self.weights[arm] * np.matmul(self.arm_features[arm].reshape(-1, 1), self.arm_features[arm].reshape(1, -1))
+		self.sigma = self.lmda * np.identity(self.num_features) + self.A
+		self.b = self.b + self.weights[arm] * self.arm_features[arm] * reward
+		#self.weights = min(1, self.alpha / np.matmul(self.arm_features[arm].T , np.linalg.inv(self.A))
+	
+	def knowArmFeatures(self, features):
+		self.arm_features = features
+	
+	def fullReset(self):
+		self.A = np.identity(self.num_features)
+		self.sigma = self.lmda * np.identity(self.num_features) + self.A
+		self.b = np.zeros(self.num_features)
+		self.weights = np.ones(self.num_arm)
