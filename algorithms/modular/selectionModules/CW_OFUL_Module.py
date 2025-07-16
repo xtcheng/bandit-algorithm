@@ -22,16 +22,14 @@ class CW_OFUL_Module:
 		return np.argmax(p)
 	
 	def thisHappened(self, arm, reward, timestep):
-		self.A = self.A + self.weights[arm] * np.matmul(self.arm_features[arm].reshape(-1, 1), self.arm_features[arm].reshape(1, -1))
-		self.sigma = self.lmda * np.identity(self.num_features) + self.A
-		self.b = self.b + self.weights[arm] * self.arm_features[arm] * reward
-		#self.weights = min(1, self.alpha / np.matmul(self.arm_features[arm].T , np.linalg.inv(self.A))
+		self.sigma += self.weight * np.matmul(self.arm_features[arm].reshape(-1, 1), self.arm_features[arm].reshape(1, -1))
+		self.b = self.b + self.weight * self.arm_features[arm] * reward
+		self.weight = min(1, self.alpha / np.matmul(self.arm_features[arm].T , np.matmul(np.linalg.inv(self.sigma), self.arm_features[arm])))
 	
 	def knowArmFeatures(self, features):
 		self.arm_features = features
 	
 	def fullReset(self):
-		self.A = np.identity(self.num_features)
-		self.sigma = self.lmda * np.identity(self.num_features) + self.A
+		self.sigma = self.lmda * np.identity(self.num_features)
 		self.b = np.zeros(self.num_features)
-		self.weights = np.ones(self.num_arm)
+		self.weight = 1
