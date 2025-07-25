@@ -151,7 +151,7 @@ def plotOnce(data, label, logscale):
 		all_colors = custom_colors
 	colors = iter(all_colors)
 	plt.figure(figsize=(6, 5))
-	for what in data:
+	for what in sorted(data): # sorted returns a list, with the labels sorted by name, so their order, and thus their assigned colors, stay fixed. (Underlying structure is dict, which has no defined order.)
 		color = next(colors)
 		samples = data[what][0]
 		samples_var = data[what][1]
