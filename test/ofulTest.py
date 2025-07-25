@@ -13,6 +13,9 @@ from environment.envContextualFlip import EnvContextualFlip
 from algorithms.modular.moduleUsers.linUCB import LinUCB
 from algorithms.modular.moduleUsers.CW_OFUL import CW_OFUL
 
+def someFunction(x):
+	return x**2 # Just the input to the square in this case.
+
 if __name__ == '__main__':
 	num_arm = 7
 	T = 1000
@@ -41,6 +44,11 @@ if __name__ == '__main__':
 	env_names.append("contextual")
 	env_names.append("contextual_renewing")
 	env_names.append("contextual_renewing_flip")
+	
+	"""
+	# Uncomment to include a nonlinear bandit (Usage example). Will visibly impact performance because both strategies assume a linear bandit.
+	envs.append(EnvContextual(num_arm, user_features, noise, True, someFunction))
+	env_names.append("nonlinear_contextual")"""
 
 	print(algorithm_names)
 	tester.test(T, Trial, envs, algorithms, algorithm_names, env_names)

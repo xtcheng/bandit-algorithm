@@ -8,6 +8,7 @@ class EnvContextualFlip(EnvContextual):
 		self.corruption_level = corruption_level
 		self.clear()
 		self.mu_is_corrupted = False
+		# No need to consider linkFunction here; we don't pass it and so it defaults to none and will be set to identity.
 		super().__init__(num_arm, theta, noise, renewing_arms)
 	
 	# Anchor the corruption application here, because this is where we set the possible rewards for next turn.
