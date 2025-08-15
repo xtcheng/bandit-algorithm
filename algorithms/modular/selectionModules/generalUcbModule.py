@@ -18,13 +18,14 @@ class GeneralUCBModule:
 	
 	def suggestArm(self):
 		# "If fprime is a boolean and is True, f is assumed to return the value of the objective function and of the derivative. fprime can also be a callable returning the derivative of f. In this case, it must accept the same arguments as f."
-		sol = optimize.minimize(self.targetFunction, x0=self.theta, method='powell', bounds=[(0,1)]*self.num_features)
+		#sol = optimize.minimize(self.targetFunction, x0=self.theta, method='powell', bounds=[(0,1)]*self.num_features)
+		sol = optimize.root(self.targetFunction, x0=self.theta)
 		#print(sol)
 		self.theta = sol.x
 		
 		p = np.zeros(self.num_arm)
 		for arm in range(self.num_arm):
-			p[arm] = np.dot(self.theta, self.arm_features[arm]) + self.alpha * np.sqrt( np.matmul(np.matmul(self.arm_features[arm].T , np.linalg.inv(self.A)) , self.arm_features[arm]) )
+			p[arm] = self.link_function(np.dot(self.theta, self.arm_features[arm])) + self.alpha * np.sqrt( np.matmul(np.matmul(self.arm_features[arm].T , np.linalg.inv(self.A)) , self.arm_features[arm]) )
 		return np.argmax(p)
 	
 	def thisHappened(self, arm, reward, timestep):
@@ -40,11 +41,11 @@ class GeneralUCBModule:
 	
 	def targetFunction(self, theta_test):
 		#print(theta_test)
-		result = 0
+		result = np.zeros(len(theta_test))
 		for k in range(self.current_time):
-			result += 100 * (self.past_rewards[k] - self.link_function(np.dot(self.past_arms[k], theta_test)))
+			result += (self.past_rewards[k] - self.link_function(np.dot(self.past_arms[k], theta_test))) * self.past_arms[k]
 		#print("Result:", result)
-		return np.abs(result)
+		return result
 	
 	def fullReset(self):
 		self.A = np.identity(self.num_features)
