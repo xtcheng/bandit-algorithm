@@ -4,6 +4,7 @@ sys.path.append('../')
 import helpers.masterTester as tester
 from environment.Gaussian_noise import Gaussian_noise as gn
 import numpy as np
+from scipy.special import expit
 
 tester.ERRORBAR_COUNT = 40
 tester.AVAILABLE_CORES = 8
@@ -15,7 +16,8 @@ from algorithms.modular.moduleUsers.generalUCB import GeneralUCB
 from algorithms.modular.moduleUsers.CW_OFUL import CW_OFUL
 
 def someFunction(x):
-	return x**3 # Just the input to the cube in this case.
+	#return x**3 # Just the input to the cube in this case.
+	return expit(x)
 
 if __name__ == '__main__':
 	num_arm = 7
