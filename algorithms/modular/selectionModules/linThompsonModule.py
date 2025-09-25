@@ -5,14 +5,14 @@ if not "../" in sys.path:
 
 # refer to https://github.com/yang0110/Bandit-algorithms/blob/master/lints.py
 class LinThompsonModule:
-	def __init__(self,T,num_arm, num_features, alpha, delta, sigma, v):
+	def __init__(self,T,num_arm, num_features, alpha, delta, sigma):
 		self.T = T
 		self.num_arm = num_arm
 		self.num_features = num_features
 		self.alpha = alpha
-		self.delta = delta
-		self.sigma = sigma
-		self.v = v
+		self.delta = delta # prob to be wrong
+		self.sigma = sigma # gauß noise
+		self.v = self.sigma*np.sqrt(24/0.5*self.num_features*np.log(1/self.delta))
 		self.fullReset()
 	
 	def suggestArm(self):
